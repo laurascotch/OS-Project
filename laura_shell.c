@@ -86,20 +86,27 @@ int main(void){
   char *buf;
   char command[32];
   int status=0;
+  char *m_cwd = malloc(128 * sizeof(char));
 
   do{
-    printf("laura_shell>");
+
+    getcwd(m_cwd,128);
+    printf("LAURA_SHELL @ ");
+    printf(m_cwd); //mostra la current working directory
+    printf(" > ");
+
     buf=readline();
     if (strcmp(buf,"exit")==0) {
       break;
     }
-    if(strcmp(buf,"help")==0){
+    args=splitline(buf);
+    if(strcmp(args[0],"help")==0){
       status=aiuto();
-    } else {
-      args=splitline(buf);
+    } else if(strcmp(args[0],"cd")==0){  //comando cd
+      status=funz_cd(args);
+    } else {                //tutto il resto
       status=launch(args);
     }
-
   }while(status);
 
 
