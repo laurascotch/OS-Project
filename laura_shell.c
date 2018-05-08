@@ -1,6 +1,3 @@
-/*
-N.B. bisogna implementare il comando cd in comandi.c
-*/
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
@@ -99,6 +96,9 @@ int main(void){
     buf=readline();
     if (strcmp(buf,"exit")==0) {
       break;
+    }
+    if(buf[0]=='\0'){
+      continue;
     }
     args=splitline(buf);
     if(strcmp(args[0],"help")==0){
