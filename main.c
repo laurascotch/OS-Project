@@ -1,6 +1,3 @@
-/*
-N.B. bisogna implementare il comando cd in comandi.c
-*/
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
@@ -83,12 +80,13 @@ int launch(char **args)
 int main(void){
 
   char **args = malloc(32 * sizeof(char));
-  char *buf;
+  char *buf = malloc(128 * sizeof(char));
   char command[32];
   int status=0;
   char *m_cwd = malloc(128 * sizeof(char));
 
-  do{
+  //do{
+  while(1){
 
     getcwd(m_cwd,128);
     printf("LAURA_SHELL @ ");
@@ -99,6 +97,9 @@ int main(void){
     if (strcmp(buf,"exit")==0) {
       break;
     }
+    if(buf[0]=='\0'){
+      continue;
+    }
     args=splitline(buf);
     if(strcmp(args[0],"help")==0){
       status=aiuto();
@@ -107,7 +108,8 @@ int main(void){
     } else {                //tutto il resto
       status=launch(args);
     }
-  }while(status);
+
+  }//while(status);
 
 
   return 0;
