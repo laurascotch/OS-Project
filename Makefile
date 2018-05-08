@@ -1,9 +1,8 @@
 COMPF = -Wall -Werror -Wextra
 
 dir:
-	@path=$PWD
-	@mkdir $(path)/test/bin
-	@cd $(path)/test/bin
+	@mkdir bin
+	@cd bin
 
 build:	shell.o
 	@gcc -o shell shell.o $(COMPF)
@@ -13,7 +12,7 @@ shell.o: dir
 
 clean:
 	@filename="shell"
-	@directory=$PWD/tmp
+	@directory=bin/tmp
 	if [-d "$directory"]; then
 		@rmdir $directory
 	fi
