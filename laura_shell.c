@@ -83,12 +83,13 @@ int launch(char **args)
 int main(void){
 
   char **args = malloc(32 * sizeof(char));
-  char *buf;
+  char *buf = malloc(128 * sizeof(char));
   char command[32];
   int status=0;
   char *m_cwd = malloc(128 * sizeof(char));
 
-  do{
+  //do{
+  while(1){
 
     getcwd(m_cwd,128);
     printf("LAURA_SHELL @ ");
@@ -107,7 +108,8 @@ int main(void){
     } else {                //tutto il resto
       status=launch(args);
     }
-  }while(status);
+
+  }//while(status);
 
 
   return 0;
