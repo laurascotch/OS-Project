@@ -58,6 +58,24 @@ char *readline(void){
     return buffer;
 }
 
+char * modificabuf(char * line){
+    char * new_str ;
+    
+    char * str2 =  malloc(32 * sizeof(char));
+    
+    str2 = "> input1.txt";
+    if((new_str = malloc(strlen(line)+strlen(str2)+1)) != NULL){
+        new_str[0] = '\0';   // ensures the memory is an empty string
+        strcat(new_str,line);
+        strcat(new_str,str2);
+    } else {
+        fprintf(stderr,"malloc failed!\n");
+        // exit
+    }
+    //printf("%s",new_str);
+    return new_str;
+}
+
 int launch(char **args)
 {
     pid_t pid;
@@ -84,6 +102,7 @@ int main(void){
     char **args = malloc(32 * sizeof(char));
     char *buf = malloc(128 * sizeof(char));
     char *buf2 = malloc(128 * sizeof(char));
+    char *buftext = malloc(128 * sizeof(char));
     char command[32];
     int status=0;
     char *m_cwd = malloc(128 * sizeof(char));
@@ -92,14 +111,17 @@ int main(void){
     while(1){
         
         getcwd(m_cwd,128);
-        printf("SHELL @ ");
+        printf("ASHELLA @ ");
         printf(m_cwd); //mostra la current working directory
         printf(" > ");
         buf=readline();
-        strcpy(buf2,buf);
         
+        strcpy(buf2,buf);
+        strcpy(buftext,buf);
         args=splitline(buf2);
-        printf("%s",args[1]);
+        buftext = modificabuf(buf);
+        
+        //printf("%s",args[1]);
         if (strcmp(buf,"exit")==0) {
             break;
         }
@@ -109,12 +131,19 @@ int main(void){
         if(strcmp(buf,"help")==0){
             status=aiuto();
         }
+        
         else if(strcmp(args[0],"cd")==0){
             
             status=funz_cd(args);
         }
-        else {                //tutto il resto
-            status=system(buf);
+        else {
+            //tutto il resto
+            if(system(buf)==-1){
+                fprintf(stderr, "errore nell'esecuzione del comando\n");
+            };
+            if(system(buftext)==-1){
+                fprintf(stderr, "errore nell'esecuzione del comando\n");
+            };
         }
         
     }//while(status);
