@@ -3,11 +3,11 @@ COMPF = -Wall -Werror -Wextra
 dir:
 	@mkdir bin
 
-build:	shell.o
-	@gcc -o bin/shell src/shell.o $(COMPF)
+build:	shell
+	@gcc -o bin/shell src/main.o src/comandi.o $(COMPF)
 
-shell.o: dir
-	@gcc -c src/shell.c src/shell.h $(COMPF)
+shell: dir
+	@gcc -c src/main.c src/comandi.c $(COMPF)
 
 clean:
 	@rm bin/*
