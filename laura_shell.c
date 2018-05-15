@@ -3,8 +3,10 @@
 #include <string.h>
 #include <stdlib.h>
 #include "comandi.h"
+#include "piping.h"
 
 int concatena = 0;
+int piping = 0;
 
 char **splitline(char *line){
   int pos=0;
@@ -17,6 +19,9 @@ char **splitline(char *line){
   }
   word = strtok(line, " ");
   while(word!= NULL){
+    if(strcmp(word,"|")==0){
+      piping=1;
+    }
     args[pos]=word;
     pos++;
     word=strtok(NULL, " ");
@@ -81,6 +86,7 @@ int main(void){
 
   char **args = malloc(32 * sizeof(char));
   char *buf = malloc(128 * sizeof(char));
+  char *buf_cp = malloc(128 * sizeof(char));
   char command[32];
   int status=0;
   char *m_cwd = malloc(128 * sizeof(char));
@@ -94,14 +100,19 @@ int main(void){
     printf(" > ");
 
     buf=readline();
+
     if (strcmp(buf,"exit")==0) {
       break;
     }
     if(buf[0]=='\0'){
       continue;
     }
+    strcpy(buf_cp, buf);
     args=splitline(buf);
-    if(strcmp(args[0],"help")==0){
+    //printf(buf_cp);
+    if(piping==1){
+      status=fai_piping(buf_cp);
+    } else if(strcmp(args[0],"help")==0){
       status=aiuto();
     } else if(strcmp(args[0],"cd")==0){  //comando cd
       status=funz_cd(args);
