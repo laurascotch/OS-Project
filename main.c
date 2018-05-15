@@ -63,7 +63,7 @@ char * modificabuf(char * line){
     
     char * str2 =  malloc(32 * sizeof(char));
     
-    str2 = "> input1.txt";
+    str2 = " 2> error.txt";
     if((new_str = malloc(strlen(line)+strlen(str2)+1)) != NULL){
         new_str[0] = '\0';   // ensures the memory is an empty string
         strcat(new_str,line);
@@ -95,6 +95,36 @@ int launch(char **args)
         //printf("Child Complete");
     }
     return 1;
+}
+
+int esegui(char * command){
+    FILE *fp;
+    FILE *f = fopen("output.txt", "w");
+    if (f == NULL)
+    {
+        printf("Error opening file!\n");
+        exit(1);
+    }
+    char path[1035];
+    
+    fp = popen(command, "r");
+    
+    if (fp == NULL) {
+        perror("Failed to run command\n" );
+        exit(1);
+    }
+    /* Read the output a line at a time - output it. */
+    while (fgets(path, sizeof(path)-1, fp) != NULL) {
+        //il codice funziona con fprintf(stdout) e non funziona con un printf normale non so bene perché 
+        fprintf(stdout,"%s", path);
+        fprintf(f,"%s",path);
+
+       
+        //fprintf(stderr, "printed to stderr\n");
+        
+    }
+    int a=pclose(fp);
+    return a;
 }
 
 int main(void){
@@ -137,13 +167,9 @@ int main(void){
             status=funz_cd(args);
         }
         else {
-            //tutto il resto
-            if(system(buf)==-1){
-                fprintf(stderr, "errore nell'esecuzione del comando\n");
-            };
-            if(system(buftext)==-1){
-                fprintf(stderr, "errore nell'esecuzione del comando\n");
-            };
+            if(esegui(buftext)!=0){
+                perror("errore");
+            }
         }
         
     }//while(status);
