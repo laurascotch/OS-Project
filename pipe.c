@@ -6,6 +6,7 @@ int main( int argc, char *argv[] )
 {
 
     FILE *fp;
+    FILE *f2;
     FILE *f = fopen("file.txt", "w");
     FILE *e = fopen("error.txt","w");
     if (f == NULL)
@@ -16,7 +17,7 @@ int main( int argc, char *argv[] )
     
     char path[1035];
     char * command = malloc(128 * sizeof(char));
-    command = "ls | ";
+    command = "ls | wc";
     
     /* Open the command for reading. */
     //2>&1 serve per reindirizzare lo stderr per far si che non stampi direttamente su shell quando c'è un errore ma metta tutto nel file fp
@@ -25,20 +26,28 @@ int main( int argc, char *argv[] )
         perror("Failed to run command\n" );
         exit(1);
     }
-    
+    f2=fp;
     //legge tutto il file fp e mette dentro path
-    while (fgets(path, 2460, fp) != NULL) {}
-    
+    //while (fgets(path, 2460, fp) != NULL) {}
+    char *buf = malloc(128 * sizeof(char));
     int a=pclose(fp);
     //pclose ritorna un errno e se è 0 vuol dire che popen non ha avuto errori nel lancio della shell se è diverso da 0 gestisci l'errore 
         if(a!=0){
-        //printf("prova");
-        printf("%s",path);
-        fprintf(e,"%s",path);
-    }
-    else{
-        printf("%s",path);
-        fprintf(f,"%s",path);
+            while (fgets(buf, 255, f2)!=NULL){
+                printf("%s", buf);
+                fprintf(e, "%s", buf);
+            }
+            //printf("prova");
+            //printf("%s",path);
+            //fprintf(e,"%s",path);
+        }
+        else{
+            while (fgets(buf, 255, f2)!=NULL){
+                printf("%s", buf);
+                fprintf(f, "%s", buf);
+            }
+            //printf("%s",path);
+            //fprintf(f,"%s",path);
     }
 
     fclose(f);
