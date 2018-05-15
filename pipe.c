@@ -4,9 +4,8 @@
 
 int main( int argc, char *argv[] )
 {
-    
+
     FILE *fp;
-    
     FILE *f = fopen("file.txt", "w");
     FILE *e = fopen("error.txt","w");
     if (f == NULL)
