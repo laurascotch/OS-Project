@@ -7,8 +7,8 @@ int fai_piping(char *args) {
 
     FILE *fp;
 
-    FILE *f = fopen("file.txt", "w");
-    FILE *e = fopen("error.txt","w");
+    FILE *f = fopen("file.txt", "a+");
+    FILE *e = fopen("error.txt","a+");
     if (f == NULL)
     {
         printf("Error opening file!\n");

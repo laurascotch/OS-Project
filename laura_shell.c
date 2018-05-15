@@ -112,6 +112,7 @@ int main(void){
     //printf(buf_cp);
     if(piping==1){
       status=fai_piping(buf_cp);
+      piping = 0;
     } else if(strcmp(args[0],"help")==0){
       status=aiuto();
     } else if(strcmp(args[0],"cd")==0){  //comando cd
