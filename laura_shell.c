@@ -63,6 +63,7 @@ char *readline(void){
 
 int launch(char **args)
 {
+
     pid_t pid;
 
     pid = fork();
@@ -119,8 +120,11 @@ int main(void){
       status=funz_cd(args);
     } else {                //tutto il resto
       status=launch(args);
+      //concatena = 0;
     }
-
+    concatena = 0;
+    printf("concatena: ");
+    printf("%d",concatena);
   }//while(status);
 
 
