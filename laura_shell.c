@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include "comandi.h"
 #include "piping.h"
+#include "bozza_piping.h"
 
 int concatena = 0;
 int piping = 0;
@@ -112,8 +113,10 @@ int main(void){
     args=splitline(buf);
     //printf(buf_cp);
     if(piping==1){
-      status=fai_piping(buf_cp);
-      piping = 0;
+      //status=fai_piping(buf_cp);
+      status=fai_pipe(args);
+      printf("CIAO");
+      //piping = 0;
     } else if(strcmp(args[0],"help")==0){
       status=aiuto();
     } else if(strcmp(args[0],"cd")==0){  //comando cd
@@ -123,6 +126,7 @@ int main(void){
       //concatena = 0;
     }
     concatena = 0;
+    piping = 0;
     printf("concatena: ");
     printf("%d",concatena);
   }//while(status);
