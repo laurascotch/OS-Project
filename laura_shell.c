@@ -111,6 +111,7 @@ int main(void){
     }
     strcpy(buf_cp, buf);
     args=splitline(buf);
+
     //printf(buf_cp);
     if(piping==1){
       //status=fai_piping(buf_cp);

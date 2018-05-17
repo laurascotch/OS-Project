@@ -36,22 +36,31 @@ int fai_pipe(char **args) {
   char **arg1 = malloc(64 * sizeof(char));
   char **arg2 = malloc(64 * sizeof(char));
   splitargs(args, arg1, arg2);
-
-  int fd[2];
-  pipe(fd); /* Create an unamed pipe */
-  if(fork () != 0) { /* Parent, writer */
-    close(fd[READ]); /* Close unused end */
-    dup2(fd[WRITE], 1); /* Duplicate used end to stdout */
-    close(fd[WRITE]); /* Close original used end */
-    execvp(arg1[0], arg1); /* Execute writer program */
-    perror("connect"); /* Should never execute */
-  } else { /* Child, reader */
-    close(fd[WRITE]); /* Close unused end */
-    dup2(fd[READ], 0); /* Duplicate used end to stdin */
-    close(fd[READ]); /* Close original used end */
-    execvp(arg2[0], arg2); /* Execute reader program */
-    perror("connect"); /* Should never execute */
-  }
+  int pid = fork();
+    if(pid<0){
+        perror("errore");
+    }
+    if(pid==0){
+        int fd[2];
+        pipe(fd); /* Create an unamed pipe */
+        if(fork () != 0) { /* Parent, writer */
+            close(fd[READ]); /* Close unused end */
+            dup2(fd[WRITE], 1); /* Duplicate used end to stdout */
+            close(fd[WRITE]); /* Close original used end */
+            execvp(arg1[0], arg1); /* Execute writer program */
+            perror("connect"); /* Should never execute */
+        } else { /* Child, reader */
+            close(fd[WRITE]); /* Close unused end */
+            dup2(fd[READ], 0); /* Duplicate used end to stdin */
+            close(fd[READ]); /* Close original used end */
+            execvp(arg2[0], arg2); /* Execute reader program */
+            perror("connect"); /* Should never execute */
+        }
+    }
+    else{
+    
+    }
+  
 
 return 1;
 }
