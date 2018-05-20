@@ -10,6 +10,11 @@ void print_error(char* error_message){
     fprintf(errorfile, error_message);
 }
 
+void print_errno(){
+    perror("Error %s\n", strerror(errno));
+    fprintf(errorfile, "Error %s\n", strerror(errno));
+}
+
 void print_log(char* message){
     printf("log: %s", message);
     fprintf(logfile,message);
@@ -41,12 +46,15 @@ int main( int argc, char *argv[] )
     //legge tutto il file fp e mette dentro path
     while (fgets(path, 2460, fp) != NULL) {}
     
-    //pclose ritorna un errno e se è 0 vuol dire che popen non ha avuto errori nel lancio della shell se è diverso da 0 gestisci l'errore 
     if(pclose(fp) != 0){
         print_error(path);
     }
     else{
         print_log(path);
+    }
+
+    if(errno!=0){//pclose ritorna un errno e se è 0 vuol dire che popen non ha avuto errori nel lancio della shell se è diverso da 0 gestisci l'errore 
+        print_errno();
     }
 
     fclose(logfile);
