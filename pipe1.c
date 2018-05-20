@@ -6,7 +6,7 @@ FILE *logfile;
 FILE *errorfile;
 
 void print_error(char* error_message){
-    perror(error_message);
+    printf(error_message);
     fprintf(errorfile, error_message);
 }
 
