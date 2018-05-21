@@ -75,17 +75,14 @@ int launch(char **args)
     } else if (pid == 0){ //child process
       //if(execvp(args[0], args) == -1) perror("error");
       execvp(args[0],args);
-      perror("OOPS, something went wrong!\nError");
-      exit(EXIT_FAILURE);
+      perror("OOPS, something went wrong!\nError"); //Se non ci sono problemi, questa riga non viene mai eseguita
+      exit(EXIT_FAILURE); //idem con patate
     } else { //parent process
       /* parent will wait for the child to complete */
-      /*if(concatena==0){
-        wait(NULL);
-      }*/
       if(concatena==0){
-          do{
-              wpid =  waitpid(pid, &status, WUNTRACED);
-          }while(!WIFEXITED(status) && !WIFSIGNALED(status));
+        do{
+            wpid =  waitpid(pid, &status, 0);
+        }while(!WIFEXITED(status) && !WIFSIGNALED(status)); //il parent aspetta che quel preciso processo ritorni o perché ha mandato il codice di uscita o perché ha segnalato un'interruzione (o qualcosa del genere)
       }
       //printf("Child Complete");
     }
