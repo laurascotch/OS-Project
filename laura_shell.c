@@ -65,19 +65,24 @@ char *readline(void){
 int launch(char **args)
 {
 
-    pid_t pid;
+    pid_t pid, wpid;
+    int status;
 
     pid = fork();
 
     if(pid < 0){ //error occurred
       fprintf(stderr, "Fork Failed");
     } else if (pid == 0){ //child process
-      if(execvp(args[0], args) == -1) perror("error");
-      exit(EXIT_FAILURE);
+      //if(execvp(args[0], args) == -1) perror("error");
+      execvp(args[0],args);
+      perror("OOPS, something went wrong!\nError"); //Se non ci sono problemi, questa riga non viene mai eseguita
+      exit(EXIT_FAILURE); //idem con patate
     } else { //parent process
       /* parent will wait for the child to complete */
       if(concatena==0){
-        wait(NULL);
+        do{
+            wpid =  waitpid(pid, &status, 0);
+        }while(!WIFEXITED(status) && !WIFSIGNALED(status)); //il parent aspetta che quel preciso processo ritorni o perché ha mandato il codice di uscita o perché ha segnalato un'interruzione (o qualcosa del genere)
       }
       //printf("Child Complete");
     }
@@ -97,9 +102,11 @@ int main(void){
   while(1){
 
     getcwd(m_cwd,128);
+	printf("\033[1;36m");
     printf("LAURA_SHELL @ ");
     printf(m_cwd); //mostra la current working directory
     printf(" > ");
+	printf("\033[0m");
 
     buf=readline();
 
@@ -128,8 +135,8 @@ int main(void){
     }
     concatena = 0;
     piping = 0;
-    printf("concatena: ");
-    printf("%d",concatena);
+    //printf("concatena: ");
+    //printf("%d",concatena);
   }//while(status);
 
 
