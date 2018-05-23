@@ -48,9 +48,11 @@ void pipeHandler(struct command *buf, int index){
 	
 	int num_com = index+1;
 	
-	char *command[256];
-	char message[1024];
-	int nbytes;
+	char *message = malloc(1024 * sizeof(char));
+	//int nbytes;
+	
+	FILE *f = fopen("file.txt", "a+");
+	FILE *e = fopen("error.txt","a+");
 	
 	pid_t pid;
 	
@@ -131,10 +133,12 @@ void pipeHandler(struct command *buf, int index){
 		} else if(i == num_com - 1){
 			if (num_com % 2 != 0){					
 				close(fd[0]);
-					close(fd[1]);
+				close(fd2[1]);
+				int nbytes = read(fd2[0], message, sizeof(message)); //se non lo metto mi da prima la riga della shell e poi il risultato
 			} else {					
 				close(fd2[0]);
-					close(fd2[0]);
+				close(fd[1]);
+				int nbytes = read(fd[0], message, 1024*sizeof(char)); //se non lo metto mi da prima la riga della shell e poi il risultato
 			}
 		} else {
 			if(i % 2 != 0){					
@@ -145,7 +149,7 @@ void pipeHandler(struct command *buf, int index){
 				close(fd2[1]);
 			}
 			waitpid(pid,NULL,0);
-		}		
+		}	
 		i=i+1;	
 	}
 }
