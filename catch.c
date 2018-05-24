@@ -8,10 +8,41 @@
 #define READ 0
 #define WRITE 1
 
+void stampa_cmd(char *str_cmd, struct command *buf, int index){
+	char *stringa[1024];
+	int num_cmd=index+1;
+	int k = 0;
+	
+	strcpy(stringa,"\0");
+	
+	for(int i=0; i<num_cmd; i++){
+		
+		while(buf[i].args[k]!=NULL){
+			
+			strcat(stringa, buf[i].args[k]);
+			strcat(stringa, " ");
+			k++;
+			
+		}
+		if(i!=num_cmd-1){
+			strcat(stringa, "| ");
+		}
+		k=0;
+		
+	}
+	
+	//printf("%s \n",stringa);
+	
+	strcpy(str_cmd,stringa);
+}
+
 void esegui(struct command *buf) {
 
   char message[1024];
   int fd[2];
+  
+  char *str_cmd = malloc(1024*sizeof(char));
+  stampa_cmd(str_cmd,buf,0);
 
   FILE *f = fopen("file.txt", "a+");
   FILE *e = fopen("error.txt","a+");
@@ -32,7 +63,7 @@ void esegui(struct command *buf) {
   } else if(pid>0){
     close(fd[1]);
     int nbytes = read(fd[0], message, sizeof(message));
-    fprintf(f, "Comando: %s \n",buf[0].args[0]);
+    fprintf(f, "Comando: %s \n",/*buf[0].args[0]*/str_cmd);
     fprintf(f,"Output: %.*s \n", nbytes, message);
     fprintf(f, "--------------------------------------------\n\n");
     printf("%.*s", nbytes, message);
@@ -48,9 +79,9 @@ void pipeHandler(struct command *buf, int index){
 	
 	int num_com = index+1;
 	
-	//char *message = malloc(1024 * sizeof(char));
-	//char *message[1024];
-	//int nbytes;
+	char *message[1024];
+	char *str_cmd = malloc(1024*sizeof(char));
+	stampa_cmd(str_cmd,buf,index);
 	
 	FILE *f = fopen("file.txt", "a+");
 	FILE *e = fopen("error.txt","a+");
@@ -96,8 +127,9 @@ void pipeHandler(struct command *buf, int index){
 			if (i == 0){ // se è il primo
 
 				dup2(fd2[1], STDOUT_FILENO);
-			}
+			//}
 			
+			/*
 			// Se siamo all'ultimo comando, sostituiamo lo standard
 			// input per una pipe o l'altra, in base al numero pari
 			// o dispari dell'iterazione.
@@ -115,7 +147,7 @@ void pipeHandler(struct command *buf, int index){
 			// due pipe, una per l'input e una per l'output. La 
 			// posizione è importante per scegliere quale file 
 			// descriptor corrisponde a ogni input/output
-				
+			*/
 			} else { 
 				if (i % 2 != 0){	// iterazione dispari
 					dup2(fd2[0],STDIN_FILENO); 
@@ -134,20 +166,22 @@ void pipeHandler(struct command *buf, int index){
 			close(fd2[1]);
 		} else if(i == num_com - 1){
 			if (num_com % 2 != 0){					
-				char *message[1024];
+				//char *message[1024];
 				close(fd[0]);
 				close(fd2[1]);
 				int nbytes = read(fd2[0], message, sizeof(message)); //se non lo metto mi da prima la riga della shell e poi il risultato
-				fprintf(f, "Comando: %s \n",buf[0].args[0]);
+				//fprintf(f, "Comando: %s \n",buf[0].args[0]);
+				fprintf(f, "Comando: %s \n",str_cmd);
 				fprintf(f,"Output: %.*s \n", nbytes, message);
 				fprintf(f, "--------------------------------------------\n\n");
 				printf("%.*s", nbytes, message);
 			} else {					
-				char *message[1024];
+				//char *message[1024];
 				close(fd2[0]);
 				close(fd[1]);
 				int nbytes = read(fd[0], message, 1024*sizeof(char)); //se non lo metto mi da prima la riga della shell e poi il risultato
-				fprintf(f, "Comando: %s \n",buf[0].args[0]);
+				//fprintf(f, "Comando: %s \n",buf[0].args[0]);
+				fprintf(f, "Comando: %s \n",str_cmd);
 				fprintf(f,"Output: %.*s \n", nbytes, message);
 				fprintf(f, "--------------------------------------------\n\n");
 				printf("%.*s", nbytes, message);
