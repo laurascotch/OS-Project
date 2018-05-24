@@ -1,0 +1,4 @@
+Comando: sldks  
+Output: [1;36mLAURA_SHELL @ [35m/home/laura/OSproject/SO-Project > [0m 
+--------------------------------------------
+

@@ -31,8 +31,6 @@ void stampa_cmd(char *str_cmd, struct command *buf, int index){
 		
 	}
 	
-	//printf("%s \n",stringa);
-	
 	strcpy(str_cmd,stringa);
 }
 
@@ -58,8 +56,12 @@ void esegui(struct command *buf) {
     dup2 (fd[1], STDOUT_FILENO);
     close(fd[0]);
     close(fd[1]);
-    execvp(buf[0].args[0], buf[0].args);
-    perror("execvp");
+    if(execvp(buf[0].args[0], buf[0].args) == -1){
+		perror("Error execvp");
+	}
+	exit(1);
+    //execvp(buf[0].args[0], buf[0].args);
+    //perror("execvp");
   } else if(pid>0){
     close(fd[1]);
     int nbytes = read(fd[0], message, sizeof(message));
@@ -142,12 +144,12 @@ void pipeHandler(struct command *buf, int index){
 					dup2(fd2[0],STDIN_FILENO);
 					dup2(fd[1],STDOUT_FILENO);
 				}
-				
+			*/
 			// Se siamo in un comando "in mezzo" dobbiamo utilizzare
 			// due pipe, una per l'input e una per l'output. La 
 			// posizione è importante per scegliere quale file 
 			// descriptor corrisponde a ogni input/output
-			*/
+			
 			} else { 
 				if (i % 2 != 0){	// iterazione dispari
 					dup2(fd2[0],STDIN_FILENO); 
@@ -158,29 +160,30 @@ void pipeHandler(struct command *buf, int index){
 				} 
 			}
 			
-			execvp(buf[i].args[0], buf[i].args);
-			perror("Error execvp");	// non lo esegue se va tutto bene
+			if(execvp(buf[i].args[0], buf[i].args) == -1){
+				perror("Error execvp");
+			}
+			exit(1);
+			
+			//execvp(buf[i].args[0], buf[i].args);
+			//perror("Error execvp");	// non lo esegue se va tutto bene
 		}
 		// chiusura dei file descriptor nel processo padre.
 		if (i == 0){
 			close(fd2[1]);
 		} else if(i == num_com - 1){
 			if (num_com % 2 != 0){					
-				//char *message[1024];
 				close(fd[0]);
 				close(fd2[1]);
 				int nbytes = read(fd2[0], message, sizeof(message)); //se non lo metto mi da prima la riga della shell e poi il risultato
-				//fprintf(f, "Comando: %s \n",buf[0].args[0]);
 				fprintf(f, "Comando: %s \n",str_cmd);
 				fprintf(f,"Output: %.*s \n", nbytes, message);
 				fprintf(f, "--------------------------------------------\n\n");
 				printf("%.*s", nbytes, message);
-			} else {					
-				//char *message[1024];
+			} else {				
 				close(fd2[0]);
 				close(fd[1]);
 				int nbytes = read(fd[0], message, 1024*sizeof(char)); //se non lo metto mi da prima la riga della shell e poi il risultato
-				//fprintf(f, "Comando: %s \n",buf[0].args[0]);
 				fprintf(f, "Comando: %s \n",str_cmd);
 				fprintf(f,"Output: %.*s \n", nbytes, message);
 				fprintf(f, "--------------------------------------------\n\n");
