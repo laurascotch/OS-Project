@@ -107,6 +107,7 @@ struct command *readline(int *index){
             if (buffer[0]!='\0'){
                 commands[i].args[j]=malloc(strlen(buffer)*sizeof(char));
                 strcpy(commands[i].args[j], buffer);
+                commands[i].args[j+1] = NULL;
             }
             i++;
             j=0;
