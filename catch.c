@@ -48,7 +48,8 @@ void pipeHandler(struct command *buf, int index){
 	
 	int num_com = index+1;
 	
-	char *message = malloc(1024 * sizeof(char));
+	//char *message = malloc(1024 * sizeof(char));
+	//char *message[1024];
 	//int nbytes;
 	
 	FILE *f = fopen("file.txt", "a+");
@@ -99,14 +100,15 @@ void pipeHandler(struct command *buf, int index){
 			
 			// Se siamo all'ultimo comando, sostituiamo lo standard
 			// input per una pipe o l'altra, in base al numero pari
-			// o dispari dell'iterazione. Lo standard output è
-			// intoccato perché vogliamo vedere l'output a terminale
+			// o dispari dell'iterazione.
 			
 			else if (i == num_com - 1){ // ultimo comando
 				if (num_com % 2 != 0){ // per un numero dispari di comandi totali
 					dup2(fd[0],STDIN_FILENO);
+					dup2(fd2[1],STDOUT_FILENO);
 				}else{ // numero pari di comandi totali
 					dup2(fd2[0],STDIN_FILENO);
+					dup2(fd[1],STDOUT_FILENO);
 				}
 				
 			// Se siamo in un comando "in mezzo" dobbiamo utilizzare
@@ -132,13 +134,23 @@ void pipeHandler(struct command *buf, int index){
 			close(fd2[1]);
 		} else if(i == num_com - 1){
 			if (num_com % 2 != 0){					
+				char *message[1024];
 				close(fd[0]);
 				close(fd2[1]);
 				int nbytes = read(fd2[0], message, sizeof(message)); //se non lo metto mi da prima la riga della shell e poi il risultato
+				fprintf(f, "Comando: %s \n",buf[0].args[0]);
+				fprintf(f,"Output: %.*s \n", nbytes, message);
+				fprintf(f, "--------------------------------------------\n\n");
+				printf("%.*s", nbytes, message);
 			} else {					
+				char *message[1024];
 				close(fd2[0]);
 				close(fd[1]);
 				int nbytes = read(fd[0], message, 1024*sizeof(char)); //se non lo metto mi da prima la riga della shell e poi il risultato
+				fprintf(f, "Comando: %s \n",buf[0].args[0]);
+				fprintf(f,"Output: %.*s \n", nbytes, message);
+				fprintf(f, "--------------------------------------------\n\n");
+				printf("%.*s", nbytes, message);
 			}
 		} else {
 			if(i % 2 != 0){					
