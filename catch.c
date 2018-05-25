@@ -3,7 +3,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <string.h>
 #include "comandi.h"
+#include "catch.h"
 
 #define READ 0
 #define WRITE 1
@@ -36,41 +38,66 @@ void stampa_cmd(char *str_cmd, struct command *buf, int index){
 
 void esegui(struct command *buf) {
 
-  char message[1024];
-  int fd[2];
+	char message[1024];
+	char errmes[1024];
   
-  char *str_cmd = malloc(1024*sizeof(char));
-  stampa_cmd(str_cmd,buf,0);
+	int fd[2];
+  
+	int ep[2];
+	
+	int processo;
+	
+	char *str_cmd = malloc(1024*sizeof(char));
+	stampa_cmd(str_cmd,buf,0);
 
-  FILE *f = fopen("file.txt", "a+");
-  FILE *e = fopen("error.txt","a+");
+	FILE *f = fopen("file.txt", "a+");
+	FILE *e = fopen("error.txt","a+");
 
-  if (pipe(fd) == -1) {
-    perror("pipe");
-    exit(1);
-  }
-
-  pid_t pid = fork();
-
-  if(pid==0){
-    dup2 (fd[1], STDOUT_FILENO);
-    close(fd[0]);
-    close(fd[1]);
-    if(execvp(buf[0].args[0], buf[0].args) == -1){
-		perror("Error execvp");
+	if (pipe(ep) == -1) {
+		perror("pipe");
+		exit(1);
 	}
-	exit(1);
-    //execvp(buf[0].args[0], buf[0].args);
-    //perror("execvp");
-  } else if(pid>0){
-    close(fd[1]);
-    int nbytes = read(fd[0], message, sizeof(message));
-    fprintf(f, "Comando: %s \n",/*buf[0].args[0]*/str_cmd);
-    fprintf(f,"Output: %.*s \n", nbytes, message);
-    fprintf(f, "--------------------------------------------\n\n");
-    printf("%.*s", nbytes, message);
-    //qui si può mettere una wait...
-  }
+
+	if (pipe(fd) == -1) {
+		perror("pipe");
+		exit(1);
+	}
+
+	pid_t pid = fork();
+	
+	if(pid==0){
+		processo=getppid();
+		dup2(fd[1], STDOUT_FILENO);
+		dup2(ep[1], STDERR_FILENO);
+		close(fd[0]);
+		close(fd[1]);
+		if(execvp(buf[0].args[0], buf[0].args) == -1){
+			perror("Errore");
+		}
+		exit(1);
+	} else if(pid>0){
+		close(fd[1]);
+		close(ep[1]);
+		int nbytes = read(fd[0], message, sizeof(message));
+		int ebytes = read(ep[0], errmes, sizeof(errmes));
+		if(nbytes != 0 && ebytes==0){
+			fprintf(f, "Comando: %s \n",str_cmd);
+			fprintf(f,"Shell pid: %d \n",processo);
+			fprintf(f,"Output: %.*s \n", nbytes, message);
+			fprintf(f, "--------------------------------------------\n\n");
+			printf("%.*s", nbytes, message);
+            fflush(f);
+		} else if(ebytes!=0 && nbytes==0){
+			fprintf(e, "Comando: %s \n",str_cmd);
+			fprintf(e,"Shell pid: %d \n",processo);
+			fprintf(e,"%.*s \n", ebytes, errmes);
+			fprintf(e, "--------------------------------------------\n\n");
+			printf("%.*s", ebytes, errmes);
+            fflush(e);
+		}
+		
+		//qui si può mettere una wait...
+	}
 }
 
 void pipeHandler(struct command *buf, int index){
@@ -78,9 +105,11 @@ void pipeHandler(struct command *buf, int index){
 	// File descriptors
 	int fd[2]; // pos. 0 output, pos. 1 input
 	int fd2[2];
+	int ep[2];
 	
 	int num_com = index+1;
 	
+	char errmes[1024];
 	char *message[1024];
 	char *str_cmd = malloc(1024*sizeof(char));
 	stampa_cmd(str_cmd,buf,index);
@@ -90,7 +119,8 @@ void pipeHandler(struct command *buf, int index){
 	
 	pid_t pid;
 	
-	int err = -1;
+	//int err = -1;
+	int processo;
 	
 	// contatore per il loop
 	int i = 0;
@@ -105,6 +135,8 @@ void pipeHandler(struct command *buf, int index){
 		// descriptors (e pipe) diverse. In questo modo, una pipe
 		// viene riutilizzata ogni due iterazioni, permettendoci di 
 		// connettere gli input e gli output di due comandi diversi
+		
+		pipe(ep);
 		
 		if (i % 2 != 0){
 			pipe(fd); 	// iterazioni dispari
@@ -126,6 +158,11 @@ void pipeHandler(struct command *buf, int index){
 			return;
 		}
 		if(pid==0){	// processo figlio
+			
+			processo=getppid();
+			
+			dup2(ep[1], STDERR_FILENO);
+			
 			if (i == 0){ // se è il primo
 
 				dup2(fd2[1], STDOUT_FILENO);
@@ -165,8 +202,6 @@ void pipeHandler(struct command *buf, int index){
 			}
 			exit(1);
 			
-			//execvp(buf[i].args[0], buf[i].args);
-			//perror("Error execvp");	// non lo esegue se va tutto bene
 		}
 		// chiusura dei file descriptor nel processo padre.
 		if (i == 0){
@@ -175,19 +210,45 @@ void pipeHandler(struct command *buf, int index){
 			if (num_com % 2 != 0){					
 				close(fd[0]);
 				close(fd2[1]);
-				int nbytes = read(fd2[0], message, sizeof(message)); //se non lo metto mi da prima la riga della shell e poi il risultato
-				fprintf(f, "Comando: %s \n",str_cmd);
-				fprintf(f,"Output: %.*s \n", nbytes, message);
-				fprintf(f, "--------------------------------------------\n\n");
-				printf("%.*s", nbytes, message);
+				close(ep[1]);
+				int nbytes = read(fd2[0], message, sizeof(message));
+				int ebytes = read(ep[0], errmes, sizeof(errmes));
+				if(nbytes != 0 && ebytes==0){
+					fprintf(f, "Comando: %s \n",/*buf[0].args[0]*/str_cmd);
+					fprintf(f,"Shell pid: %d \n",processo);
+					fprintf(f,"Output: %.*s \n", nbytes, message);
+					fprintf(f, "--------------------------------------------\n\n");
+					printf("%.*s", nbytes, message);
+                    fflush(f);
+				} else if(ebytes!=0 && nbytes==0){
+					fprintf(e, "Comando: %s \n",/*buf[0].args[0]*/str_cmd);
+					fprintf(e,"Shell pid: %d \n",processo);
+					fprintf(e,"%.*s \n", ebytes, errmes);
+					fprintf(e, "--------------------------------------------\n\n");
+					printf("%.*s", ebytes, errmes);
+                    fflush(e);
+				}
 			} else {				
 				close(fd2[0]);
 				close(fd[1]);
-				int nbytes = read(fd[0], message, 1024*sizeof(char)); //se non lo metto mi da prima la riga della shell e poi il risultato
-				fprintf(f, "Comando: %s \n",str_cmd);
-				fprintf(f,"Output: %.*s \n", nbytes, message);
-				fprintf(f, "--------------------------------------------\n\n");
-				printf("%.*s", nbytes, message);
+				close(ep[1]);
+				int nbytes = read(fd[0], message, sizeof(message));
+				int ebytes = read(ep[0], errmes, sizeof(errmes));
+				if(nbytes != 0 && ebytes==0){
+					fprintf(f, "Comando: %s \n",/*buf[0].args[0]*/str_cmd);
+					fprintf(f,"Shell pid: %d \n",processo);
+					fprintf(f,"Output: %.*s \n", nbytes, message);
+					fprintf(f, "--------------------------------------------\n\n");
+					printf("%.*s", nbytes, message);
+                    fflush(f);
+				} else if(ebytes!=0 && nbytes==0){
+					fprintf(e, "Comando: %s \n",/*buf[0].args[0]*/str_cmd);
+					fprintf(e,"Shell pid: %d \n",processo);
+					fprintf(e,"%.*s \n", ebytes, errmes);
+					fprintf(e, "--------------------------------------------\n\n");
+					printf("%.*s", ebytes, errmes);
+                    fflush(e);
+				}
 			}
 		} else {
 			if(i % 2 != 0){					
