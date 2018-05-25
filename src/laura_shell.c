@@ -49,11 +49,7 @@ int main(int argc, char *argv[]){
 		printf(" > ");
 		printf("\033[0m");
 
-
 		buf=readline(&index);
-		
-		//printf("index rit: %d\n", index);
-
 
 		if (strcmp(buf[0].args[0],"exit")==0) { // supponiamo che l'utente scriva solo "exit" per uscire
 			break;

@@ -41,18 +41,17 @@ void esegui(struct command *buf, int oF, int eF) {
 
 	char message[1024];
 	char errmes[1024];
+	char datemes[1024];
+	int dbytes;
   
 	int fd[2];
-  
 	int ep[2];
+	int tm[2];
 	
 	int processo;
 	
 	char *str_cmd = malloc(1024*sizeof(char));
 	stampa_cmd(str_cmd,buf,0);
-
-	//FILE *f = fopen("file.txt", "a+");
-	//FILE *e = fopen("error.txt","a+");
 
 	if (pipe(ep) == -1) {
 		perror("pipe");
@@ -60,6 +59,11 @@ void esegui(struct command *buf, int oF, int eF) {
 	}
 
 	if (pipe(fd) == -1) {
+		perror("pipe");
+		exit(1);
+	}
+	
+	if (pipe(tm) == -1) {
 		perror("pipe");
 		exit(1);
 	}
@@ -77,24 +81,36 @@ void esegui(struct command *buf, int oF, int eF) {
 		}
 		exit(1);
 	} else if(pid>0){
+		pid_t pidtime = fork();
+		if(pidtime==0){
+			dup2(tm[1],STDOUT_FILENO);    
+			close(tm[0]);
+			execlp("date","date",NULL);
+			exit(1);
+		} else if(pidtime>0){
+			close(tm[1]);
+			dbytes = read(tm[0], datemes,sizeof(datemes));  
+		}
 		close(fd[1]);
 		close(ep[1]);
 		int nbytes = read(fd[0], message, sizeof(message));
 		int ebytes = read(ep[0], errmes, sizeof(errmes));
 		if(nbytes != 0 && ebytes==0){
+			dprintf(oF, "============================================\n\n");
 			dprintf(oF, "Comando: %s \n",str_cmd);
-			dprintf(oF,"Shell pid: %d \n",processo);
-			dprintf(oF,"Output: %.*s \n", nbytes, message);
-			dprintf(oF, "--------------------------------------------\n\n");
+			dprintf(oF,"Shell pid: %d \n",getppid());
+			dprintf(oF,"Data: %s \n",datemes);
+			dprintf(oF,"Output: \n\n%.*s \n", nbytes, message);
+			dprintf(oF, "============================================\n\n");
 			printf("%.*s", nbytes, message);
-            //fflush(f);
 		} else if(ebytes!=0 && nbytes==0){
+			dprintf(eF, "============================================\n\n");
 			dprintf(eF, "Comando: %s \n",str_cmd);
-			dprintf(eF,"Shell pid: %d \n",processo);
+			dprintf(eF,"Shell pid: %d \n",getppid());
+			dprintf(eF,"Data: %s \n",datemes);
 			dprintf(eF,"%.*s \n", ebytes, errmes);
-			dprintf(eF, "--------------------------------------------\n\n");
+			dprintf(eF, "============================================\n\n");
 			printf("%.*s", ebytes, errmes);
-            //fflush(e);
 		}
 		
 		//qui si può mettere una wait...
@@ -107,20 +123,32 @@ void pipeHandler(struct command *buf, int index, FILE *oF, FILE *eF){
 	int fd[2]; // pos. 0 output, pos. 1 input
 	int fd2[2];
 	int ep[2];
+	int tm[2];
 	
 	int num_com = index+1;
 	
+	char datemes[1024];
 	char errmes[1024];
 	char *message[1024];
 	char *str_cmd = malloc(1024*sizeof(char));
 	stampa_cmd(str_cmd,buf,index);
 	
-//	FILE *f = fopen("file.txt", "a+");
-//	FILE *e = fopen("error.txt","a+");
+	if(pipe(tm) == -1){
+		perror("pipe");
+		exit(1);
+	}
+	pid_t pidtime = fork();
+	if(pidtime==0){
+		dup2(tm[1],STDOUT_FILENO);
+		close(tm[0]);
+		execlp("date","date",NULL);
+		exit(1);
+	} else if(pidtime>0){
+		close(tm[1]);
+	}
 	
 	pid_t pid;
 	
-	//int err = -1;
 	int processo;
 	
 	// contatore per il loop
@@ -140,9 +168,17 @@ void pipeHandler(struct command *buf, int index, FILE *oF, FILE *eF){
 		pipe(ep);
 		
 		if (i % 2 != 0){
-			pipe(fd); 	// iterazioni dispari
+			if(pipe(fd) == -1){
+				perror("pipe");
+				exit(1);
+			}
+		//	pipe(fd); 	// iterazioni dispari
 		}else{
-			pipe(fd2); // iterazioni pari
+			if(pipe(fd2) == -1){
+				perror("pipe");
+				exit(1);
+			}
+		//	pipe(fd2); // iterazioni pari
 		}
 		
 		pid=fork();
@@ -167,22 +203,7 @@ void pipeHandler(struct command *buf, int index, FILE *oF, FILE *eF){
 			if (i == 0){ // se è il primo
 
 				dup2(fd2[1], STDOUT_FILENO);
-			//}
 			
-			/*
-			// Se siamo all'ultimo comando, sostituiamo lo standard
-			// input per una pipe o l'altra, in base al numero pari
-			// o dispari dell'iterazione.
-			
-			else if (i == num_com - 1){ // ultimo comando
-				if (num_com % 2 != 0){ // per un numero dispari di comandi totali
-					dup2(fd[0],STDIN_FILENO);
-					dup2(fd2[1],STDOUT_FILENO);
-				}else{ // numero pari di comandi totali
-					dup2(fd2[0],STDIN_FILENO);
-					dup2(fd[1],STDOUT_FILENO);
-				}
-			*/
 			// Se siamo in un comando "in mezzo" dobbiamo utilizzare
 			// due pipe, una per l'input e una per l'output. La 
 			// posizione è importante per scegliere quale file 
@@ -214,20 +235,23 @@ void pipeHandler(struct command *buf, int index, FILE *oF, FILE *eF){
 				close(ep[1]);
 				int nbytes = read(fd2[0], message, sizeof(message));
 				int ebytes = read(ep[0], errmes, sizeof(errmes));
+				int dbytes = read(tm[0], datemes,sizeof(datemes));
 				if(nbytes != 0 && ebytes==0){
+					dprintf(oF, "============================================\n\n");
 					dprintf(oF, "Comando: %s \n",str_cmd);
-					dprintf(oF,"Shell pid: %d \n",processo);
-					dprintf(oF,"Output: %.*s \n", nbytes, message);
-					dprintf(oF, "--------------------------------------------\n\n");
+					dprintf(oF,"Shell pid: %d \n",getppid());
+					dprintf(oF,"Data: %s \n",datemes);
+					dprintf(oF,"Output: \n\n%.*s \n", nbytes, message);
+					dprintf(oF, "============================================\n\n");
 					printf("%.*s", nbytes, message);
-                    //fflush(f);
 				} else if(ebytes!=0 && nbytes==0){
+					dprintf(eF, "============================================\n\n");
 					dprintf(eF, "Comando: %s \n",str_cmd);
-					dprintf(eF,"Shell pid: %d \n",processo);
+					dprintf(eF,"Shell pid: %d \n",getppid());
+					dprintf(eF,"Data: %s \n",datemes);
 					dprintf(eF,"%.*s \n", ebytes, errmes);
-					dprintf(eF, "--------------------------------------------\n\n");
+					dprintf(eF, "============================================\n\n");
 					printf("%.*s", ebytes, errmes);
-                    //fflush(e);
 				}
 			} else {				
 				close(fd2[0]);
@@ -235,20 +259,23 @@ void pipeHandler(struct command *buf, int index, FILE *oF, FILE *eF){
 				close(ep[1]);
 				int nbytes = read(fd[0], message, sizeof(message));
 				int ebytes = read(ep[0], errmes, sizeof(errmes));
+				int dbytes = read(tm[0], datemes,sizeof(datemes));
 				if(nbytes != 0 && ebytes==0){
+					dprintf(oF, "============================================\n\n");
 					dprintf(oF, "Comando: %s \n",str_cmd);
-					dprintf(oF,"Shell pid: %d \n",processo);
-					dprintf(oF,"Output: %.*s \n", nbytes, message);
-					dprintf(oF, "--------------------------------------------\n\n");
+					dprintf(oF,"Shell pid: %d \n",getppid());
+					dprintf(oF,"Data: %s \n",datemes);
+					dprintf(oF,"Output: \n\n%.*s \n", nbytes, message);
+					dprintf(oF, "============================================\n\n");
 					printf("%.*s", nbytes, message);
-                    //fflush(f);
 				} else if(ebytes!=0 && nbytes==0){
+					dprintf(eF, "============================================\n\n");
 					dprintf(eF, "Comando: %s \n",str_cmd);
-					dprintf(eF,"Shell pid: %d \n",processo);
+					dprintf(eF,"Shell pid: %d \n",getppid());
+					dprintf(eF,"Data: %s \n",datemes);
 					dprintf(eF,"%.*s \n", ebytes, errmes);
-					dprintf(eF, "--------------------------------------------\n\n");
+					dprintf(eF, "============================================\n\n");
 					printf("%.*s", ebytes, errmes);
-                    //fflush(e);
 				}
 			}
 		} else {
