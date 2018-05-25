@@ -2,28 +2,41 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
+#include <fcntl.h>
+#include <errno.h>
 #include "comandi.h"
 #include "catch.h"
 
 
-int launch(struct command *buf, int index) {
+int launch(struct command *buf, int index, int oF, int eF) {
 	
 	if(index==0){
-		esegui(buf);
+		esegui(buf, oF, eF);
 	} else {
-		pipeHandler(buf, index);
+		pipeHandler(buf, index, oF, eF);
 	}
 
 return 1;
 }
 
 
-int main(void){
+int main(int argc, char *argv[]){
 
 	struct command *buf = malloc(128 * sizeof(char));
 	int status=0;
 	int *index=0;
 	char *m_cwd = malloc(128 * sizeof(char));
+	
+	char *outPath=malloc(128*sizeof(char));
+	char *errPath=malloc(128*sizeof(char));
+
+	int oF;
+	int eF;
+	
+	argCheck(argc, argv, outPath, errPath);
+	fileOpen(outPath, errPath, &oF, &eF);
+
+	system("clear");
 
 	while(1){
 
@@ -54,10 +67,11 @@ int main(void){
 		} else if(strcmp(buf[0].args[0],"cd")==0){ // comando cd
 			status=funz_cd(buf);
 		} else { //tutto il resto
-			status=launch(buf, index);
+			status=launch(buf, index, oF, eF);
 		}
 	}
-
+	close(oF);
+	close(eF);
 
 return 0;
 }

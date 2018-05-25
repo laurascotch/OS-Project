@@ -62,20 +62,23 @@ void argCheck(int argc, char **argv, char *outputPath, char *errPath){
                 printf("Some error occured: filepath(s) not specified\nCorrect usage \"./shell -o=\"<path-to-file>\" -e=\"<path-to-file>\"\n");
                 exit(1);
             }
+        } else {
+            printf("Some error occured: filepath(s) not specified\nCorrect usage \"./shell -o=\"<path-to-file>\" -e=\"<path-to-file>\"\n");
+            exit(1);
         }
     }
 }
 
 void fileOpen(char *outputPath, char *errPath, int *oF, int *eF){
-    oF=open(outputPath, O_WRONLY|O_CREAT, 0777);
-    eF=open(errPath, O_WRONLY|O_CREAT, 0777);
+    *oF=open(outputPath, O_WRONLY|O_APPEND|O_CREAT, 0777);
+    *eF=open(errPath, O_WRONLY|O_APPEND|O_CREAT, 0777);
 
-    if (oF<0){
+    if (*oF<0){
         printf("Error opening \"%s\". Please check the path and retry\n", outputPath);
         perror(""+errno);
         exit(1);
     }
-    if (eF<0){
+    if (*eF<0){
         printf("Error opening \"%s\". Please check the path and retry\n", errPath);
         perror(""+errno);
         exit(1);
@@ -97,16 +100,20 @@ struct command *readline(int *index){
     while(l!=EOF && l!='\n'){
         if(l==' '){
             buffer[pos]='\0';
-            commands[i].args[j]=malloc(strlen(buffer)*sizeof(char));
-            strcpy(commands[i].args[j], buffer);
-            j++;
+            if(buffer[0]!='\0'){
+                commands[i].args[j]=malloc(strlen(buffer)*sizeof(char));
+                strcpy(commands[i].args[j], buffer);
+                j++;
+            }
             pos=0;
+            buffer[pos]='\0';
             
         } else if(l=='|'){
             buffer[pos]='\0';
             if (buffer[0]!='\0'){
                 commands[i].args[j]=malloc(strlen(buffer)*sizeof(char));
                 strcpy(commands[i].args[j], buffer);
+                commands[i].args[j+1] = NULL;
             }
             i++;
             j=0;
