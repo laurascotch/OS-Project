@@ -1,7 +1,0 @@
-reindirizzamento canali di output su file (output ed errori)[2]
-
-piping [4]
-
-catch errori [3]
-
-makefile [1]
