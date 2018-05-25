@@ -36,7 +36,7 @@ void stampa_cmd(char *str_cmd, struct command *buf, int index){
 	strcpy(str_cmd,stringa);
 }
 
-void esegui(struct command *buf) {
+void esegui(struct command *buf, int oF, int eF) {
 
 	char message[1024];
 	char errmes[1024];
@@ -49,9 +49,6 @@ void esegui(struct command *buf) {
 	
 	char *str_cmd = malloc(1024*sizeof(char));
 	stampa_cmd(str_cmd,buf,0);
-
-	FILE *f = fopen("file.txt", "a+");
-	FILE *e = fopen("error.txt","a+");
 
 	if (pipe(ep) == -1) {
 		perror("pipe");
@@ -78,29 +75,27 @@ void esegui(struct command *buf) {
 	} else if(pid>0){
 		close(fd[1]);
 		close(ep[1]);
-		int nbytes = read(fd[0], message, sizeof(message));
+		size_t nbytes = read(fd[0], message, sizeof(message));
 		int ebytes = read(ep[0], errmes, sizeof(errmes));
 		if(nbytes != 0 && ebytes==0){
-			fprintf(f, "Comando: %s \n",str_cmd);
-			fprintf(f,"Shell pid: %d \n",processo);
-			fprintf(f,"Output: %.*s \n", nbytes, message);
-			fprintf(f, "--------------------------------------------\n\n");
+			dprintf(oF, "Comando: %s \n",str_cmd);
+			dprintf(oF,"Shell pid: %d \n",processo);
+			dprintf(oF,"Output: %.*s \n", nbytes, message);
+			dprintf(oF, "--------------------------------------------\n\n");
 			printf("%.*s", nbytes, message);
-            fflush(f);
 		} else if(ebytes!=0 && nbytes==0){
-			fprintf(e, "Comando: %s \n",str_cmd);
-			fprintf(e,"Shell pid: %d \n",processo);
-			fprintf(e,"%.*s \n", ebytes, errmes);
-			fprintf(e, "--------------------------------------------\n\n");
+			dprintf(eF, "Comando: %s \n",str_cmd);
+			dprintf(eF,"Shell pid: %d \n",processo);
+			dprintf(eF,"%.*s \n", ebytes, errmes);
+			dprintf(eF, "--------------------------------------------\n\n");
 			printf("%.*s", ebytes, errmes);
-            fflush(e);
 		}
 		
 		//qui si può mettere una wait...
 	}
 }
 
-void pipeHandler(struct command *buf, int index){
+void pipeHandler(struct command *buf, int index, FILE *oF, FILE *eF){
 	
 	// File descriptors
 	int fd[2]; // pos. 0 output, pos. 1 input
@@ -113,9 +108,6 @@ void pipeHandler(struct command *buf, int index){
 	char *message[1024];
 	char *str_cmd = malloc(1024*sizeof(char));
 	stampa_cmd(str_cmd,buf,index);
-	
-	FILE *f = fopen("file.txt", "a+");
-	FILE *e = fopen("error.txt","a+");
 	
 	pid_t pid;
 	
@@ -214,19 +206,17 @@ void pipeHandler(struct command *buf, int index){
 				int nbytes = read(fd2[0], message, sizeof(message));
 				int ebytes = read(ep[0], errmes, sizeof(errmes));
 				if(nbytes != 0 && ebytes==0){
-					fprintf(f, "Comando: %s \n",/*buf[0].args[0]*/str_cmd);
-					fprintf(f,"Shell pid: %d \n",processo);
-					fprintf(f,"Output: %.*s \n", nbytes, message);
-					fprintf(f, "--------------------------------------------\n\n");
+					dprintf(oF, "Comando: %s \n",/*buf[0].args[0]*/str_cmd);
+					dprintf(oF,"Shell pid: %d \n",processo);
+					dprintf(oF,"Output: %.*s \n", nbytes, message);
+					dprintf(oF, "--------------------------------------------\n\n");
 					printf("%.*s", nbytes, message);
-                    fflush(f);
 				} else if(ebytes!=0 && nbytes==0){
-					fprintf(e, "Comando: %s \n",/*buf[0].args[0]*/str_cmd);
-					fprintf(e,"Shell pid: %d \n",processo);
-					fprintf(e,"%.*s \n", ebytes, errmes);
-					fprintf(e, "--------------------------------------------\n\n");
+					dprintf(eF, "Comando: %s \n",/*buf[0].args[0]*/str_cmd);
+					dprintf(eF,"Shell pid: %d \n",processo);
+					dprintf(eF,"%.*s \n", ebytes, errmes);
+					dprintf(eF, "--------------------------------------------\n\n");
 					printf("%.*s", ebytes, errmes);
-                    fflush(e);
 				}
 			} else {				
 				close(fd2[0]);
@@ -235,19 +225,17 @@ void pipeHandler(struct command *buf, int index){
 				int nbytes = read(fd[0], message, sizeof(message));
 				int ebytes = read(ep[0], errmes, sizeof(errmes));
 				if(nbytes != 0 && ebytes==0){
-					fprintf(f, "Comando: %s \n",/*buf[0].args[0]*/str_cmd);
-					fprintf(f,"Shell pid: %d \n",processo);
-					fprintf(f,"Output: %.*s \n", nbytes, message);
-					fprintf(f, "--------------------------------------------\n\n");
+					dprintf(oF, "Comando: %s \n",/*buf[0].args[0]*/str_cmd);
+					dprintf(oF,"Shell pid: %d \n",processo);
+					dprintf(oF,"Output: %.*s \n", nbytes, message);
+					dprintf(oF, "--------------------------------------------\n\n");
 					printf("%.*s", nbytes, message);
-                    fflush(f);
 				} else if(ebytes!=0 && nbytes==0){
-					fprintf(e, "Comando: %s \n",/*buf[0].args[0]*/str_cmd);
-					fprintf(e,"Shell pid: %d \n",processo);
-					fprintf(e,"%.*s \n", ebytes, errmes);
-					fprintf(e, "--------------------------------------------\n\n");
+					dprintf(eF, "Comando: %s \n",/*buf[0].args[0]*/str_cmd);
+					dprintf(eF,"Shell pid: %d \n",processo);
+					dprintf(eF,"%.*s \n", ebytes, errmes);
+					dprintf(eF, "--------------------------------------------\n\n");
 					printf("%.*s", ebytes, errmes);
-                    fflush(e);
 				}
 			}
 		} else {
@@ -263,4 +251,3 @@ void pipeHandler(struct command *buf, int index){
 		i=i+1;	
 	}
 }
-
