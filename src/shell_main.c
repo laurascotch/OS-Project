@@ -60,7 +60,7 @@ int main(int argc, char *argv[]){
 		// INTESTAZIONE
 		getcwd(m_cwd,128);
 		printf("\033[1;36m");
-		printf("LAURA_SHELL @ ");
+		printf("CUSTOM SHELL @ ");
 		printf("\x1B[35m");
 		printf(m_cwd); //mostra la current working directory
 		printf(" > ");
