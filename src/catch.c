@@ -111,14 +111,8 @@ void esegui(struct command *buf, int oF, int eF) {
 			stampa_file(oF, str_cmd, dbytes, nbytes, datemes, message, 0);
 
 		} else if(ebytes!=0 && nbytes==0){
-			dprintf(eF, "============================================\n\n");
-			dprintf(eF, "Comando: %s \n",str_cmd);
-			dprintf(eF,"Shell pid: %d \n",getppid());
-			dprintf(eF,"Data: %.*s \n",dbytes, datemes);
-			dprintf(eF,"%.*s \n", ebytes, errmes);
-			dprintf(eF,"RETURN CODE: %d\n", -1);
-			dprintf(eF, "============================================\n\n");
-			printf("%.*s", ebytes, errmes);
+
+			stampa_file(eF, str_cmd, dbytes, nbytes, datemes, message, -1);
 		}
 		
 		//qui si può mettere una wait...
@@ -246,23 +240,12 @@ void pipeHandler(struct command *buf, int index, int oF, int eF){
 				int ebytes = read(ep[0], errmes, sizeof(errmes));
 				int dbytes = read(tm[0], datemes,sizeof(datemes));
 				if(nbytes != 0 && ebytes==0){
-					dprintf(oF, "============================================\n\n");
-					dprintf(oF, "Comando: %s \n",str_cmd);
-					dprintf(oF,"Shell pid: %d \n",getppid());
-					dprintf(oF,"Data: %.*s \n",dbytes, datemes);
-					dprintf(oF,"Output: \n\n%.*s \n", nbytes, message);
-					dprintf(oF,"RETURN CODE: %d\n", 0);
-					dprintf(oF, "============================================\n\n");
-					printf("%.*s", nbytes, message);
+
+					stampa_file(oF, str_cmd, dbytes, nbytes, datemes, message, 0);
+					
 				} else if(ebytes!=0 && nbytes==0){
-					dprintf(eF, "============================================\n\n");
-					dprintf(eF, "Comando: %s \n",str_cmd);
-					dprintf(eF,"Shell pid: %d \n",getppid());
-					dprintf(eF,"Data: %.*s \n",dbytes, datemes);
-					dprintf(eF,"%.*s \n", ebytes, errmes);
-					dprintf(eF,"RETURN CODE: %d\n", -1);
-					dprintf(eF, "============================================\n\n");
-					printf("%.*s", ebytes, errmes);
+
+					stampa_file(eF, str_cmd, dbytes, nbytes, datemes, message, -1);
 				}
 			} else {				
 				close(fd2[0]);
@@ -272,23 +255,13 @@ void pipeHandler(struct command *buf, int index, int oF, int eF){
 				int ebytes = read(ep[0], errmes, sizeof(errmes));
 				int dbytes = read(tm[0], datemes,sizeof(datemes));
 				if(nbytes != 0 && ebytes==0){
-					dprintf(oF, "============================================\n\n");
-					dprintf(oF, "Comando: %s \n",str_cmd);
-					dprintf(oF,"Shell pid: %d \n",getppid());
-					dprintf(oF,"Data: %.*s \n",dbytes, datemes);
-					dprintf(oF,"Output: \n\n%.*s \n", nbytes, message);
-					dprintf(oF,"RETURN CODE: %d\n", 0);
-					dprintf(oF, "============================================\n\n");
-					printf("%.*s", nbytes, message);
+
+					stampa_file(oF, str_cmd, dbytes, nbytes, datemes, message, 0);
+
 				} else if(ebytes!=0 && nbytes==0){
-					dprintf(eF, "============================================\n\n");
-					dprintf(eF, "Comando: %s \n",str_cmd);
-					dprintf(eF,"Shell pid: %d \n",getppid());
-					dprintf(eF,"Data: %.*s \n",dbytes, datemes);
-					dprintf(eF,"%.*s \n", ebytes, errmes);
-					dprintf(eF,"RETURN CODE: %d\n", -1);
-					dprintf(eF, "============================================\n\n");
-					printf("%.*s", ebytes, errmes);
+
+					stampa_file(eF, str_cmd, dbytes, nbytes, datemes, message, -1);
+
 				}
 			}
 		} else {
