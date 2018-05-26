@@ -13,6 +13,7 @@ int aiuto(){
   printf("Laura's shell\n");
   printf("Digita il programma e gli argomenti e premi INVIO\n");
   printf("digita help per la guida\n");
+  printf("digita exit per uscire\n");
 
   return 1;
 }

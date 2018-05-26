@@ -69,5 +69,10 @@ int main(int argc, char *argv[]){
 	close(oF);
 	close(eF);
 
+	free(outPath);
+	free(errPath);
+	free(m_cwd);
+	free(buf);
+
 return 0;
 }
