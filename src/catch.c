@@ -10,14 +10,14 @@
 #define READ 0
 #define WRITE 1
 
-void stampa_file(char *str_cmd, int dbytes, int nbytes, char datemes[1024], char message[1024], int resultcode){
-	dprintf(oF, "============================================\n\n");
-	dprintf(oF, "Comando: %s \n",str_cmd);
-	dprintf(oF,"Shell pid: %d \n",getppid());
-	dprintf(oF,"Data: %.*s \n",dbytes, datemes);
-	dprintf(oF,"Output: \n\n%.*s \n", nbytes, message);
-	dprintf(oF,"RETURN CODE: %d\n", resultcode);
-	dprintf(oF, "============================================\n\n");
+void stampa_file(int outputFile, char *str_cmd, int dbytes, int nbytes, char datemes[1024], char message[1024], int resultcode){
+	dprintf(outputFile, "============================================\n\n");
+	dprintf(outputFile, "Comando: %s \n",str_cmd);
+	dprintf(outputFile,"Shell pid: %d \n",getppid());
+	dprintf(outputFile,"Data: %.*s \n",dbytes, datemes);
+	dprintf(outputFile,"Output: \n\n%.*s \n", nbytes, message);
+	dprintf(outputFile,"RETURN CODE: %d\n", resultcode);
+	dprintf(outputFile, "============================================\n\n");
 	printf("%.*s", nbytes, message);
 }
 
@@ -108,7 +108,7 @@ void esegui(struct command *buf, int oF, int eF) {
 		int ebytes = read(ep[0], errmes, sizeof(errmes));
 		if(nbytes != 0 && ebytes==0){
 
-			stampa_file(str_cmd,dbytes,nbytes,datemes,message,0)
+			stampa_file(oF, str_cmd, dbytes, nbytes, datemes, message, 0);
 
 		} else if(ebytes!=0 && nbytes==0){
 			dprintf(eF, "============================================\n\n");
