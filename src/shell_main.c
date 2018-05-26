@@ -45,7 +45,7 @@ int main(int argc, char *argv[]){
 
 	int oF; //file descriptor outfile
 	int eF; //file descriptor errfile
-	int code; //indicatore del parametro "code"
+	int code=1; //indicatore del parametro "code". Di default, viene stampato anche il codice di ritorno
 	
 	//chiamate a funzioni in comandi.c
 	argCheck(argc, argv, outPath, errPath, &code);
