@@ -39,10 +39,11 @@ int funz_cd(struct command *buf){
  * Funzione per il controllo degli argomenti passati all'eseguibile
  * Richiede che siano specificati i file di log e log degli errori
  */
-void argCheck(int argc, char **argv, char *outputPath, char *errPath){
+void argCheck(int argc, char **argv, char *outputPath, char *errPath, int *code){
     char *tmp;
+    char *codeStr=malloc(32*sizeof(char));
 
-    if (argc!=3){
+    if (argc<3||argc>4){
         printf("Missing one or more arguments\n");
         exit(1);
     }
@@ -74,11 +75,26 @@ void argCheck(int argc, char **argv, char *outputPath, char *errPath){
                 printf("Some error occured: filepath(s) not specified\nCorrect usage \"./shell -o=\"<path-to-file>\" -e=\"<path-to-file>\"\n");
                 exit(1);
             }
-        } else {
-            printf("Some error occured: filepath(s) not specified\nCorrect usage \"./shell -o=\"<path-to-file>\" -e=\"<path-to-file>\"\n");
-            exit(1);
+        }
+        if (strstr(argv[i], "--code")!=NULL||strstr(argv[i], "-c")){
+            tmp = strchr(argv[i], '=');
+            if (tmp!=NULL){
+                strncpy(codeStr, argv[i]+(tmp-argv[i]+1), 32*sizeof(char));
+                if (codeStr[0]=='\0'){
+                    printf("Some error occured: the value for the \"code\" parameter is not valid");
+                    exit(1);
+                } else if (strcmp(codeStr, "true")==0||strcmp(codeStr, "t")==0){
+                    *code=1;
+                } else if (strcmp(codeStr, "false")==0||strcmp(codeStr, "f")==0){
+                    *code=0;
+                } else {
+                    printf("Some error occured: the value for \"code\" parameter is not valid");
+                    exit(1);
+                }
+            }
         }
     }
+    free(codeStr);
 }
 
 /*

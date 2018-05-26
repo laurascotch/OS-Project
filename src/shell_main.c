@@ -18,12 +18,12 @@
  * oF	:	File descriptor per il file di log
  * eF	:	File descriptor per il file di log degli errori
  */
-int launch(struct command *buf, int index, int oF, int eF) {
+int launch(struct command *buf, int index, int oF, int eF, int code) {
 	
 	if(index==0){
-		esegui(buf, oF, eF);
+		esegui(buf, oF, eF, code);
 	} else {
-		pipeHandler(buf, index, oF, eF);
+		pipeHandler(buf, index, oF, eF, code);
 	}
 
 return 1;
@@ -45,9 +45,10 @@ int main(int argc, char *argv[]){
 
 	int oF; //file descriptor outfile
 	int eF; //file descriptor errfile
+	int code; //indicatore del parametro "code"
 	
 	//chiamate a funzioni in comandi.c
-	argCheck(argc, argv, outPath, errPath);
+	argCheck(argc, argv, outPath, errPath, &code);
 	fileOpen(outPath, errPath, &oF, &eF);
 
 	//"pulisce" il terminale alla prima chiamata
@@ -80,7 +81,7 @@ int main(int argc, char *argv[]){
 		} else if(strcmp(buf[0].args[0],"cd")==0){ // comando cd
 			status=funz_cd(buf);
 		} else { //tutto il resto
-			status=launch(buf, index, oF, eF);
+			status=launch(buf, index, oF, eF, code);
 		}
 	}
 	close(oF);
