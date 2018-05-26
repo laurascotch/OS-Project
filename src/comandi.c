@@ -41,7 +41,7 @@ void argCheck(int argc, char **argv, char *outputPath, char *errPath){
         if ((strstr(argv[i], "--outfile")!=NULL)||(strstr(argv[i], "-o")!=NULL)){
             tmp = strchr(argv[i], '=');
             if (tmp!=NULL){
-                strncpy(outputPath, argv[i]+(tmp-argv[i]+1), sizeof(outputPath));
+                strncpy(outputPath, argv[i]+(tmp-argv[i]+1), 128*sizeof(char));
                 if (outputPath[0]=='\0'){
                     printf("Some error occured: filepath(s) not specified\nCorrect usage \"./shell -o=\"<path-to-file>\" -e=\"<path-to-file>\"\n");
                     exit(1);
@@ -53,7 +53,7 @@ void argCheck(int argc, char **argv, char *outputPath, char *errPath){
         } else if ((strstr(argv[i], "--errfile")!=NULL)||(strstr(argv[i], "-e")!=NULL)){
             tmp = strchr(argv[i], '=');
             if (tmp!=NULL){
-                strncpy(errPath, argv[i]+(tmp-argv[i]+1), sizeof(errPath));
+                strncpy(errPath, argv[i]+(tmp-argv[i]+1), 128*sizeof(char));
                 if (errPath[0]=='\0'){
                     printf("Some error occured: filepath(s) not specified\nCorrect usage \"./shell -o=\"<path-to-file>\" -e=\"<path-to-file>\"\n");
                     exit(1);
