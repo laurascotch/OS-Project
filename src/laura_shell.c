@@ -7,7 +7,17 @@
 #include "comandi.h"
 #include "catch.h"
 
-
+/*
+ * Metodo che invoca le funzione appropriate per eseguire i comandi 
+ * inseriti dall'utente. Controlla se è necessario usare il piping.
+ * Parametri:
+ * buf	:	Un array di comandi di tipo command, già definito in 
+ * 			comandi.h e comandi.c
+ * index:	L'ultimo indice utile dell'array, index+1 è il numero di
+ * 			comandi da eseguire in totale
+ * oF	:	File descriptor per il file di log
+ * eF	:	File descriptor per il file di log degli errori
+ */
 int launch(struct command *buf, int index, int oF, int eF) {
 	
 	if(index==0){
@@ -19,25 +29,32 @@ int launch(struct command *buf, int index, int oF, int eF) {
 return 1;
 }
 
-
+/*
+ * Metodo main della shell, accetta gli argomenti da linea di comando
+ * per l'inizializzazione dei file di log.
+ */
 int main(int argc, char *argv[]){
 
-	struct command *buf = malloc(128 * sizeof(char));
+	struct command *buf = malloc(128 * sizeof(char)); //Array che conterrà i comandi da eseguire
 	int status=0;
-	int *index=0;
-	char *m_cwd = malloc(128 * sizeof(char));
+	int *index=0; //Ultimo indice utile dell'array
+	char *m_cwd = malloc(128 * sizeof(char)); //Stringa della current working directory
 	
-	char *outPath=malloc(128*sizeof(char));
-	char *errPath=malloc(128*sizeof(char));
+	char *outPath=malloc(128*sizeof(char)); //percorso del file di log
+	char *errPath=malloc(128*sizeof(char)); //percorso del lfile di log degli errori
 
-	int oF;
-	int eF;
+	int oF; //file descriptor outfile
+	int eF; //file descriptor errfile
 	
+	//chiamate a funzioni in comandi.c
 	argCheck(argc, argv, outPath, errPath);
 	fileOpen(outPath, errPath, &oF, &eF);
 
+	//"pulisce" il terminale alla prima chiamata
 	system("clear");
 
+	// Loop principale del programma, accetta i comandi immessi
+	// dall'utente
 	while(1){
 
 		// INTESTAZIONE

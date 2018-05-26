@@ -10,14 +10,23 @@
 #define READ 0
 #define WRITE 1
 
+/*
+ * Funzione per che legge da buf il comando immesso dall'utente per 
+ * stamparlo nei file di log.
+ * str_cmd è la stringa che poi verrà stampata.
+ * index è l'ultimo indice usato nell'array di comandi (vedere come
+ * questo viene implementato in comandi.c), pertanto il numero di 
+ * comandi è index+1.
+ */
 void stampa_cmd(char *str_cmd, struct command *buf, int index){
 	char *stringa[1024];
-	int num_cmd=index+1;
-	int k = 0;
+	int num_cmd=index+1; //Numero di comandi immessi dall'utente
+	
+	int k = 0; //indice per scorrere gli args
 	
 	strcpy(stringa,"\0");
 	
-	for(int i=0; i<num_cmd; i++){
+	for(int i=0; i<num_cmd; i++){ //scorre l'array dei comandi
 		
 		while(buf[i].args[k]!=NULL){
 			
@@ -26,6 +35,9 @@ void stampa_cmd(char *str_cmd, struct command *buf, int index){
 			k++;
 			
 		}
+		/*
+		 * Se c'è più di un comando, stampa il carattere di piping
+		 */
 		if(i!=num_cmd-1){
 			strcat(stringa, "| ");
 		}
@@ -36,23 +48,34 @@ void stampa_cmd(char *str_cmd, struct command *buf, int index){
 	strcpy(str_cmd,stringa);
 }
 
-
+/*
+ * Funzione per l'esecuzione di un comando singolo.
+ * Fa uso di due pipe per la stampa su file di log del risultato
+ * dell'esecuzione o dell'eventuale errore.
+ * Una terza pipe (sul file descriptor tm) è utilizzata per stampare
+ * nei file di log la data e l'ora, tramite la chiamata date.
+ * Parametri:
+ * buf	:	L'array con i comandi (in questo caso con uno solo)
+ * outputFile	:	il file descriptor per il file di log
+ * errorFile	:	il file descriptor per il file di log degli errori
+ */
 void esegui(struct command *buf, int outputFile, int errorFile) {
 
-	char message[1024];
-	char errmes[1024];
-	char datemes[1024];
-	int dbytes;
+	char message[1024]; //output
+	char errmes[1024]; //errore
+	char datemes[1024]; //data e ora
+	int dbytes; //dimensione effettiva datemes
   
-	int fd[2];
-	int ep[2];
-	int tm[2];
+	int fd[2]; //file descriptor per esecuzione senza errori
+	int ep[2]; //file descriptor per catch errori
+	int tm[2]; //fd per la data
 	
 	int processo;
 	
 	char *str_cmd = malloc(1024*sizeof(char));
 	stampa_cmd(str_cmd,buf,0);
 
+// INIZIALIZZAZIONE DELLE PIPES
 	if (pipe(ep) == -1) {
 		perror("pipe");
 		exit(1);
@@ -70,10 +93,10 @@ void esegui(struct command *buf, int outputFile, int errorFile) {
 
 	pid_t pid = fork();
 	
-	if(pid==0){
+	if(pid==0){ //processo figlio
 		processo=getppid();
-		dup2(fd[1], STDOUT_FILENO);
-		dup2(ep[1], STDERR_FILENO);
+		dup2(fd[1], STDOUT_FILENO); //redirezionamento output
+		dup2(ep[1], STDERR_FILENO); //redirezionamento errore
 		close(fd[0]);
 		close(fd[1]);
 		if(execvp(buf[0].args[0], buf[0].args) == -1){
@@ -81,6 +104,7 @@ void esegui(struct command *buf, int outputFile, int errorFile) {
 		}
 		exit(1);
 	} else if(pid>0){
+		//per aggiungere la data nell'output
 		pid_t pidtime = fork();
 		if(pidtime==0){
 			dup2(tm[1],STDOUT_FILENO);    
@@ -91,8 +115,11 @@ void esegui(struct command *buf, int outputFile, int errorFile) {
 			close(tm[1]);
 			dbytes = read(tm[0], datemes,sizeof(datemes));  
 		}
+		// chiusura dei file descriptors
 		close(fd[1]);
 		close(ep[1]);
+		// lettura dei filedescriptor per decidere se stampare sul file
+		// di log "normale" o in quello degli errori
 		int nbytes = read(fd[0], message, sizeof(message));
 		int ebytes = read(ep[0], errmes, sizeof(errmes));
 		if(nbytes != 0 && ebytes==0){
@@ -103,12 +130,22 @@ void esegui(struct command *buf, int outputFile, int errorFile) {
 
 			stampa_file(errorFile, str_cmd, dbytes, ebytes, datemes, errmes, -1);
 		}
-		
-		//qui si può mettere una wait...
 	}
 	free(str_cmd);
 }
 
+/*
+ * Funzione per l'esecuzione di comandi in pipe.
+ * Fa uso di due pipe per la stampa su file di log del risultato
+ * dell'esecuzione, una pipe per il redirezionamento dell'errore,
+ * mentre una quarta pipe (sul file descriptor tm) è utilizzata per 
+ * stampare nei file di log la data e l'ora, tramite la chiamata date.
+ * Parametri:
+ * buf			:	L'array con i comandi
+ * index		:	l'indice dell'ultimo comando nell'array
+ * outputFile	:	il file descriptor per il file di log
+ * errorFile	:	il file descriptor per il file di log degli errori
+ */
 void pipeHandler(struct command *buf, int index, int outputFile, int errorFile){
 	
 	// File descriptors
@@ -117,14 +154,16 @@ void pipeHandler(struct command *buf, int index, int outputFile, int errorFile){
 	int ep[2];
 	int tm[2];
 	
-	int num_com = index+1;
+	int num_com = index+1; //numero di comandi
 	
-	char datemes[1024];
-	char errmes[1024];
-	char *message[1024];
-	char *str_cmd = malloc(1024*sizeof(char));
+	char datemes[1024]; //stringa data
+	char errmes[1024]; //stringa errore
+	char *message[1024]; //stringa output
+	char *str_cmd = malloc(1024*sizeof(char)); //stringa del comando
 	stampa_cmd(str_cmd,buf,index);
 	
+//////////////////////////////////////////
+//	GESTIONE DATA E ORA PER OUTPUT
 	if(pipe(tm) == -1){
 		perror("pipe");
 		exit(1);
@@ -138,7 +177,8 @@ void pipeHandler(struct command *buf, int index, int outputFile, int errorFile){
 	} else if(pidtime>0){
 		close(tm[1]);
 	}
-	
+///////////////////////////////////////////
+
 	pid_t pid;
 	
 	int processo;
@@ -159,18 +199,16 @@ void pipeHandler(struct command *buf, int index, int outputFile, int errorFile){
 		
 		pipe(ep);
 		
-		if (i % 2 != 0){
+		if (i % 2 != 0){ // iterazioni dispari
 			if(pipe(fd) == -1){
 				perror("pipe");
 				exit(1);
 			}
-		//	pipe(fd); 	// iterazioni dispari
-		}else{
+		}else{ // iterazioni pari
 			if(pipe(fd2) == -1){
 				perror("pipe");
 				exit(1);
 			}
-		//	pipe(fd2); // iterazioni pari
 		}
 		
 		pid=fork();
@@ -220,11 +258,15 @@ void pipeHandler(struct command *buf, int index, int outputFile, int errorFile){
 		// chiusura dei file descriptor nel processo padre.
 		if (i == 0){
 			close(fd2[1]);
-		} else if(i == num_com - 1){
+		} else if(i == num_com - 1){ //stampa a video e sui file di log quando arriva all'ultimo comando
+		// i file descriptors vengono usati alternativamente, quindi bisogna distinguere se i comandi erano 
+		// in quantità pari o dispari
 			if (num_com % 2 != 0){					
 				close(fd[0]);
 				close(fd2[1]);
 				close(ep[1]);
+		// lettura dei filedescriptor per decidere se stampare sul file
+		// di log "normale" o in quello degli errori
 				int nbytes = read(fd2[0], message, sizeof(message));
 				int ebytes = read(ep[0], errmes, sizeof(errmes));
 				int dbytes = read(tm[0], datemes,sizeof(datemes));
@@ -253,7 +295,7 @@ void pipeHandler(struct command *buf, int index, int outputFile, int errorFile){
 
 				}
 			}
-		} else {
+		} else { // Un comando intermedio non stampa su file
 			if(i % 2 != 0){					
 				close(fd2[0]);
 				close(fd[1]);
@@ -268,12 +310,23 @@ void pipeHandler(struct command *buf, int index, int outputFile, int errorFile){
 	free(str_cmd);
 }
 
+/*
+ * Funzione per la stampa su file
+ * Parametri:
+ * outputFile	:	il file in cui scrivere
+ * str_cmd		:	il comando immesso dall'utente
+ * dbytes		:	la dimensione effettiva della stringa della data
+ * nbytes		:	la dimensione effettiva della stringa di output
+ * datemes		:	la stringa della data
+ * message		:	la stringa di output
+ * resultcode	:	codice di ritorno
+ */
 void stampa_file(int outputFile, char *str_cmd, int dbytes, int nbytes, char datemes[1024], char message[1024], int resultcode){
 	dprintf(outputFile, "============================================\n\n");
-	dprintf(outputFile, "Comando: %s \n",str_cmd);
-	dprintf(outputFile,"Shell pid: %d \n",getppid());
-	dprintf(outputFile,"Data: %.*s \n",dbytes, datemes);
-	dprintf(outputFile,"Output: \n\n%.*s \n", nbytes, message);
+	dprintf(outputFile, "COMMAND: %s \n",str_cmd);
+	dprintf(outputFile,"SHELL PID: %d \n",getppid());
+	dprintf(outputFile,"DATE: %.*s \n",dbytes, datemes);
+	dprintf(outputFile,"OUTPUT: \n\n%.*s \n", nbytes, message);
 	dprintf(outputFile,"RETURN CODE: %d\n", resultcode);
 	dprintf(outputFile, "============================================\n\n");
 	printf("%.*s", nbytes, message);

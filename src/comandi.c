@@ -9,6 +9,9 @@
 #include <sys/stat.h>
 #include <errno.h>
 
+/*
+ * Funzione ad hoc, breve guida per la shell
+ */
 int aiuto(){
   printf("Laura's shell\n");
   printf("Digita il programma e gli argomenti e premi INVIO\n");
@@ -18,6 +21,9 @@ int aiuto(){
   return 1;
 }
 
+/*
+ * Funzione per il comando cd
+ */
 int funz_cd(struct command *buf){
   if(buf[0].args[1] == NULL){
       fprintf(stderr, "Expected argument to \"cd\"\n");
@@ -29,6 +35,10 @@ int funz_cd(struct command *buf){
   return 1;
 }
 
+/*
+ * Funzione per il controllo degli argomenti passati all'eseguibile
+ * Richiede che siano specificati i file di log e log degli errori
+ */
 void argCheck(int argc, char **argv, char *outputPath, char *errPath){
     char *tmp;
 
@@ -37,6 +47,8 @@ void argCheck(int argc, char **argv, char *outputPath, char *errPath){
         exit(1);
     }
 
+//Cerca la sottostringa --outfile o -o e il conseguente nome del file da usare come log
+// e la sottostringa --errfile o -e e ril conseguente nome del file di log degli errori
     for (int i=1; i<argc; i++){
         if ((strstr(argv[i], "--outfile")!=NULL)||(strstr(argv[i], "-o")!=NULL)){
             tmp = strchr(argv[i], '=');
@@ -69,6 +81,9 @@ void argCheck(int argc, char **argv, char *outputPath, char *errPath){
     }
 }
 
+/*
+ * Funzione per l'apertura dei file di log con i file descriptor
+ */
 void fileOpen(char *outputPath, char *errPath, int *oF, int *eF){
     *oF=open(outputPath, O_WRONLY|O_APPEND|O_CREAT, 0777);
     *eF=open(errPath, O_WRONLY|O_APPEND|O_CREAT, 0777);
@@ -85,6 +100,17 @@ void fileOpen(char *outputPath, char *errPath, int *oF, int *eF){
     }
 }
 
+/*
+ * Funzione ad hoc per leggere i comandi immessi dall'utente.
+ * Riempe un array di struct di tipo command, definito in comandi.h,
+ * Ogni istanza contiene un array di stringhe in cui sono inseriti il
+ * comando e tutte le relative opzioni.
+ * Parametro:
+ * index:	intero passato per riferimento in cui viene salvato 
+ * 			l'ultimo indice utilizzato dall'array, per poter in
+ * 			seguito contare il numero di comandi inseriti.
+ * 			Se non viene usato il piping, sarà index=0.
+ */
 struct command *readline(int *index){
     int pos=0, i=0, j=0;
     struct command *commands=malloc(5*sizeof(struct command));
@@ -97,6 +123,11 @@ struct command *readline(int *index){
 
     l=getchar();
 
+/*
+ * Scorre tutto il buffer e separa le "parole" in args, cercando anche il 
+ * carattere di piping. Ogni volta che trova tale carattere, usa una nuova
+ * variabile di tipo command, inserita nell'array commands.
+ */
     while(l!=EOF && l!='\n'){
         if(l==' '){
             buffer[pos]='\0';
