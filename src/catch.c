@@ -115,6 +115,7 @@ void esegui(struct command *buf, int oF, int eF) {
 		
 		//qui si può mettere una wait...
 	}
+	free(str_cmd);
 }
 
 void pipeHandler(struct command *buf, int index, FILE *oF, FILE *eF){
@@ -290,5 +291,6 @@ void pipeHandler(struct command *buf, int index, FILE *oF, FILE *eF){
 		}	
 		i=i+1;	
 	}
+	free(str_cmd);
 }
 
