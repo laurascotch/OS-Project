@@ -41,7 +41,7 @@ int main(int argc, char *argv[]){
 	char *m_cwd = malloc(128 * sizeof(char)); //Stringa della current working directory
 	
 	char *outPath=malloc(128*sizeof(char)); //percorso del file di log
-	char *errPath=malloc(128*sizeof(char)); //percorso del lfile di log degli errori
+	char *errPath=malloc(128*sizeof(char)); //percorso del file di log degli errori
 
 	int oF; //file descriptor outfile
 	int eF; //file descriptor errfile
@@ -60,7 +60,7 @@ int main(int argc, char *argv[]){
 		// INTESTAZIONE
 		getcwd(m_cwd,128);
 		printf("\033[1;36m");
-		printf("LAURA_SHELL @ ");
+		printf("CUSTOM_SHELL @ ");
 		printf("\x1B[35m");
 		printf(m_cwd); //mostra la current working directory
 		printf(" > ");
