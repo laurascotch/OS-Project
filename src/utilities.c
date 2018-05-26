@@ -39,12 +39,14 @@ int funz_cd(struct command *buf){
  * Funzione per il controllo degli argomenti passati all'eseguibile
  * Richiede che siano specificati i file di log e log degli errori
  */
-void argCheck(int argc, char **argv, char *outputPath, char *errPath, int *code){
+void argCheck(int argc, char **argv, char *outputPath, char *errPath, int *code, int *maxlen){
     char *tmp;
     char *codeStr=malloc(32*sizeof(char));
+    char *maxlenStr=malloc(32*sizeof(char));
 
-    if (argc<3||argc>4){
-        printf("Missing one or more arguments\n");
+    if (argc<3||argc>5){
+        printf("Incorrect number of arguments\n");
+        printf("Usage: ./shell -o=\"<path-to-file>\" -e=\"<path-to-file>\" -c=<true/false> -m=<maxlen>\n");
         exit(1);
     }
 
@@ -75,8 +77,7 @@ void argCheck(int argc, char **argv, char *outputPath, char *errPath, int *code)
                 printf("Some error occured: filepath(s) not specified\nCorrect usage \"./shell -o=\"<path-to-file>\" -e=\"<path-to-file>\"\n");
                 exit(1);
             }
-        }
-        if (strstr(argv[i], "--code")!=NULL||strstr(argv[i], "-c")){
+        }else if (strstr(argv[i], "--code")!=NULL||strstr(argv[i], "-c")){
             tmp = strchr(argv[i], '=');
             if (tmp!=NULL){
                 strncpy(codeStr, argv[i]+(tmp-argv[i]+1), 32*sizeof(char));
@@ -92,9 +93,24 @@ void argCheck(int argc, char **argv, char *outputPath, char *errPath, int *code)
                     exit(1);
                 }
             }
+        } else if (strstr(argv[i], "--maxlen")!=NULL||strstr(argv[i], "-m")!=NULL){
+            tmp = strchr(argv[i], '=');
+            if (tmp!=NULL){
+                strncpy(maxlenStr, argv[i]+(tmp-argv[i]+1), 32*sizeof(char));
+                if (maxlenStr[0]=='\0'){
+                    printf("Some error occured: the value for \"maxlen\" parameter is not valid\n");
+                    exit(1);
+                } else {
+                    *maxlen=atoi(maxlenStr);
+                }
+            } else {
+                printf("Some error occured: the value for \"maxlen\" parameter is not valid\n");
+                exit(1);
+            }
         }
     }
     free(codeStr);
+    free(maxlenStr);
 }
 
 /*
@@ -176,4 +192,8 @@ struct command *readline(int *index){
     strcpy(commands[i].args[j], buffer);
     *index=i;
     return  commands;
+}
+
+int min(int a, int b){
+    return (a<=b) ? a : b;
 }

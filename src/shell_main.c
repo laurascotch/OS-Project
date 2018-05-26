@@ -6,6 +6,7 @@
 #include <errno.h>
 #include "utilities.h"
 #include "execute.h"
+#include <limits.h>
 
 /*
  * Metodo che invoca le funzione appropriate per eseguire i comandi 
@@ -18,12 +19,12 @@
  * oF	:	File descriptor per il file di log
  * eF	:	File descriptor per il file di log degli errori
  */
-int launch(struct command *buf, int index, int oF, int eF, int code) {
+int launch(struct command *buf, int index, int oF, int eF, int code, int maxlen) {
 	
 	if(index==0){
-		esegui(buf, oF, eF, code);
+		esegui(buf, oF, eF, code, maxlen);
 	} else {
-		pipeHandler(buf, index, oF, eF, code);
+		pipeHandler(buf, index, oF, eF, code, maxlen);
 	}
 
 return 1;
@@ -46,14 +47,14 @@ int main(int argc, char *argv[]){
 	int oF; //file descriptor outfile
 	int eF; //file descriptor errfile
 	int code=1; //indicatore del parametro "code". Di default, viene stampato anche il codice di ritorno
+	int maxlen=INT_MAX; //dimensione massimo di scrittura dell'output sul file di log. Di default è al massimo valore di int
 	
 	//chiamate a funzioni in comandi.c
-	argCheck(argc, argv, outPath, errPath, &code);
+	argCheck(argc, argv, outPath, errPath, &code, &maxlen);
 	fileOpen(outPath, errPath, &oF, &eF);
-
+	
 	//"pulisce" il terminale alla prima chiamata
 	system("clear");
-
 	// Loop principale del programma, accetta i comandi immessi
 	// dall'utente
 	while(1){
@@ -81,7 +82,7 @@ int main(int argc, char *argv[]){
 		} else if(strcmp(buf[0].args[0],"cd")==0){ // comando cd
 			status=funz_cd(buf);
 		} else { //tutto il resto
-			status=launch(buf, index, oF, eF, code);
+			status=launch(buf, index, oF, eF, code, maxlen);
 		}
 	}
 	close(oF);

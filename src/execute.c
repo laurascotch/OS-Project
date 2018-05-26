@@ -59,7 +59,7 @@ void stampa_cmd(char *str_cmd, struct command *buf, int index){
  * outputFile	:	il file descriptor per il file di log
  * errorFile	:	il file descriptor per il file di log degli errori
  */
-void esegui(struct command *buf, int outputFile, int errorFile, int code) {
+void esegui(struct command *buf, int outputFile, int errorFile, int code, int maxlen) {
 
 	char message[1024]; //output
 	char errmes[1024]; //errore
@@ -124,11 +124,11 @@ void esegui(struct command *buf, int outputFile, int errorFile, int code) {
 		int ebytes = read(ep[0], errmes, sizeof(errmes));
 		if(nbytes != 0 && ebytes==0){
 
-			stampa_file(outputFile, str_cmd, dbytes, nbytes, datemes, message, 0, code);
+			stampa_file(outputFile, str_cmd, dbytes, nbytes, datemes, message, 0, code, maxlen);
 
 		} else if(ebytes!=0 && nbytes==0){
 
-			stampa_file(errorFile, str_cmd, dbytes, ebytes, datemes, errmes, -1, code);
+			stampa_file(errorFile, str_cmd, dbytes, ebytes, datemes, errmes, -1, code, maxlen);
 		}
 	}
 	free(str_cmd);
@@ -146,7 +146,7 @@ void esegui(struct command *buf, int outputFile, int errorFile, int code) {
  * outputFile	:	il file descriptor per il file di log
  * errorFile	:	il file descriptor per il file di log degli errori
  */
-void pipeHandler(struct command *buf, int index, int outputFile, int errorFile, int code){
+void pipeHandler(struct command *buf, int index, int outputFile, int errorFile, int code, int maxlen){
 	
 	// File descriptors
 	int fd[2]; // pos. 0 output, pos. 1 input
@@ -272,11 +272,11 @@ void pipeHandler(struct command *buf, int index, int outputFile, int errorFile, 
 				int dbytes = read(tm[0], datemes,sizeof(datemes));
 				if(nbytes != 0 && ebytes==0){
 
-					stampa_file(outputFile, str_cmd, dbytes, nbytes, datemes, message, 0, code);
+					stampa_file(outputFile, str_cmd, dbytes, nbytes, datemes, message, 0, code, maxlen);
 					
 				} else if(ebytes!=0 && nbytes==0){
 
-					stampa_file(errorFile, str_cmd, dbytes, ebytes, datemes, errmes, -1, code);
+					stampa_file(errorFile, str_cmd, dbytes, ebytes, datemes, errmes, -1, code, maxlen);
 				}
 			} else {				
 				close(fd2[0]);
@@ -287,11 +287,11 @@ void pipeHandler(struct command *buf, int index, int outputFile, int errorFile, 
 				int dbytes = read(tm[0], datemes,sizeof(datemes));
 				if(nbytes != 0 && ebytes==0){
 
-					stampa_file(outputFile, str_cmd, dbytes, nbytes, datemes, message, 0, code);
+					stampa_file(outputFile, str_cmd, dbytes, nbytes, datemes, message, 0, code, maxlen);
 
 				} else if(ebytes!=0 && nbytes==0){
 
-					stampa_file(errorFile, str_cmd, dbytes, ebytes, datemes, errmes, -1, code);
+					stampa_file(errorFile, str_cmd, dbytes, ebytes, datemes, errmes, -1, code, maxlen);
 
 				}
 			}
@@ -321,12 +321,15 @@ void pipeHandler(struct command *buf, int index, int outputFile, int errorFile, 
  * message		:	la stringa di output
  * resultcode	:	codice di ritorno
  */
-void stampa_file(int outputFile, char *str_cmd, int dbytes, int nbytes, char datemes[1024], char message[1024], int resultcode, int code){
+void stampa_file(int outputFile, char *str_cmd, int dbytes, int nbytes, char datemes[1024], char message[1024], int resultcode, int code, int maxlen){
+	
 	dprintf(outputFile, "============================================\n\n");
 	dprintf(outputFile, "COMMAND: %s \n",str_cmd);
 	dprintf(outputFile,"SHELL PID: %d \n",getppid());
 	dprintf(outputFile,"DATE: %.*s \n",dbytes, datemes);
-	dprintf(outputFile,"OUTPUT: \n\n%.*s \n", nbytes, message);
+	int printBytes = min(maxlen, nbytes);
+	dprintf(outputFile, "OUTPUT: \n\n");
+	dprintf(outputFile,"%.*s \n", printBytes, message);
 	if (code==1){
 		dprintf(outputFile,"RETURN CODE: %d\n", resultcode);
 	}
