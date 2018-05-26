@@ -99,7 +99,7 @@ void esegui(struct command *buf, int oF, int eF) {
 			dprintf(oF, "============================================\n\n");
 			dprintf(oF, "Comando: %s \n",str_cmd);
 			dprintf(oF,"Shell pid: %d \n",getppid());
-			dprintf(oF,"Data: %s \n",datemes);
+			dprintf(oF,"Data: %.*s \n",dbytes, datemes);
 			dprintf(oF,"Output: \n\n%.*s \n", nbytes, message);
 			dprintf(oF, "============================================\n\n");
 			printf("%.*s", nbytes, message);
@@ -107,7 +107,7 @@ void esegui(struct command *buf, int oF, int eF) {
 			dprintf(eF, "============================================\n\n");
 			dprintf(eF, "Comando: %s \n",str_cmd);
 			dprintf(eF,"Shell pid: %d \n",getppid());
-			dprintf(eF,"Data: %s \n",datemes);
+			dprintf(eF,"Data: %.*s \n",dbytes, datemes);
 			dprintf(eF,"%.*s \n", ebytes, errmes);
 			dprintf(eF, "============================================\n\n");
 			printf("%.*s", ebytes, errmes);
@@ -118,7 +118,7 @@ void esegui(struct command *buf, int oF, int eF) {
 	free(str_cmd);
 }
 
-void pipeHandler(struct command *buf, int index, FILE *oF, FILE *eF){
+void pipeHandler(struct command *buf, int index, int oF, int eF){
 	
 	// File descriptors
 	int fd[2]; // pos. 0 output, pos. 1 input
@@ -241,7 +241,7 @@ void pipeHandler(struct command *buf, int index, FILE *oF, FILE *eF){
 					dprintf(oF, "============================================\n\n");
 					dprintf(oF, "Comando: %s \n",str_cmd);
 					dprintf(oF,"Shell pid: %d \n",getppid());
-					dprintf(oF,"Data: %s \n",datemes);
+					dprintf(oF,"Data: %.*s \n",dbytes, datemes);
 					dprintf(oF,"Output: \n\n%.*s \n", nbytes, message);
 					dprintf(oF, "============================================\n\n");
 					printf("%.*s", nbytes, message);
@@ -249,7 +249,7 @@ void pipeHandler(struct command *buf, int index, FILE *oF, FILE *eF){
 					dprintf(eF, "============================================\n\n");
 					dprintf(eF, "Comando: %s \n",str_cmd);
 					dprintf(eF,"Shell pid: %d \n",getppid());
-					dprintf(eF,"Data: %s \n",datemes);
+					dprintf(eF,"Data: %.*s \n",dbytes, datemes);
 					dprintf(eF,"%.*s \n", ebytes, errmes);
 					dprintf(eF, "============================================\n\n");
 					printf("%.*s", ebytes, errmes);
@@ -265,7 +265,7 @@ void pipeHandler(struct command *buf, int index, FILE *oF, FILE *eF){
 					dprintf(oF, "============================================\n\n");
 					dprintf(oF, "Comando: %s \n",str_cmd);
 					dprintf(oF,"Shell pid: %d \n",getppid());
-					dprintf(oF,"Data: %s \n",datemes);
+					dprintf(oF,"Data: %.*s \n",dbytes, datemes);
 					dprintf(oF,"Output: \n\n%.*s \n", nbytes, message);
 					dprintf(oF, "============================================\n\n");
 					printf("%.*s", nbytes, message);
@@ -273,7 +273,7 @@ void pipeHandler(struct command *buf, int index, FILE *oF, FILE *eF){
 					dprintf(eF, "============================================\n\n");
 					dprintf(eF, "Comando: %s \n",str_cmd);
 					dprintf(eF,"Shell pid: %d \n",getppid());
-					dprintf(eF,"Data: %s \n",datemes);
+					dprintf(eF,"Data: %.*s \n",dbytes, datemes);
 					dprintf(eF,"%.*s \n", ebytes, errmes);
 					dprintf(eF, "============================================\n\n");
 					printf("%.*s", ebytes, errmes);
