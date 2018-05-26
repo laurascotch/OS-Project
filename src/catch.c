@@ -10,16 +10,7 @@
 #define READ 0
 #define WRITE 1
 
-void stampa_file(int outputFile, char *str_cmd, int dbytes, int nbytes, char datemes[1024], char message[1024], int resultcode){
-	dprintf(outputFile, "============================================\n\n");
-	dprintf(outputFile, "Comando: %s \n",str_cmd);
-	dprintf(outputFile,"Shell pid: %d \n",getppid());
-	dprintf(outputFile,"Data: %.*s \n",dbytes, datemes);
-	dprintf(outputFile,"Output: \n\n%.*s \n", nbytes, message);
-	dprintf(outputFile,"RETURN CODE: %d\n", resultcode);
-	dprintf(outputFile, "============================================\n\n");
-	printf("%.*s", nbytes, message);
-}
+
 
 void stampa_cmd(char *str_cmd, struct command *buf, int index){
 	char *stringa[1024];
@@ -279,3 +270,13 @@ void pipeHandler(struct command *buf, int index, int oF, int eF){
 	free(str_cmd);
 }
 
+void stampa_file(int outputFile, char *str_cmd, int dbytes, int nbytes, char datemes[1024], char message[1024], int resultcode){
+	dprintf(outputFile, "============================================\n\n");
+	dprintf(outputFile, "Comando: %s \n",str_cmd);
+	dprintf(outputFile,"Shell pid: %d \n",getppid());
+	dprintf(outputFile,"Data: %.*s \n",dbytes, datemes);
+	dprintf(outputFile,"Output: \n\n%.*s \n", nbytes, message);
+	dprintf(outputFile,"RETURN CODE: %d\n", resultcode);
+	dprintf(outputFile, "============================================\n\n");
+	printf("%.*s", nbytes, message);
+}
