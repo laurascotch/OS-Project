@@ -101,6 +101,7 @@ void esegui(struct command *buf, int oF, int eF) {
 			dprintf(oF,"Shell pid: %d \n",getppid());
 			dprintf(oF,"Data: %.*s \n",dbytes, datemes);
 			dprintf(oF,"Output: \n\n%.*s \n", nbytes, message);
+			dprintf(oF,"RETURN CODE: %d\n", 0);
 			dprintf(oF, "============================================\n\n");
 			printf("%.*s", nbytes, message);
 		} else if(ebytes!=0 && nbytes==0){
@@ -109,6 +110,7 @@ void esegui(struct command *buf, int oF, int eF) {
 			dprintf(eF,"Shell pid: %d \n",getppid());
 			dprintf(eF,"Data: %.*s \n",dbytes, datemes);
 			dprintf(eF,"%.*s \n", ebytes, errmes);
+			dprintf(eF,"RETURN CODE: %d\n", -1);
 			dprintf(eF, "============================================\n\n");
 			printf("%.*s", ebytes, errmes);
 		}
@@ -243,6 +245,7 @@ void pipeHandler(struct command *buf, int index, int oF, int eF){
 					dprintf(oF,"Shell pid: %d \n",getppid());
 					dprintf(oF,"Data: %.*s \n",dbytes, datemes);
 					dprintf(oF,"Output: \n\n%.*s \n", nbytes, message);
+					dprintf(oF,"RETURN CODE: %d\n", 0);
 					dprintf(oF, "============================================\n\n");
 					printf("%.*s", nbytes, message);
 				} else if(ebytes!=0 && nbytes==0){
@@ -251,6 +254,7 @@ void pipeHandler(struct command *buf, int index, int oF, int eF){
 					dprintf(eF,"Shell pid: %d \n",getppid());
 					dprintf(eF,"Data: %.*s \n",dbytes, datemes);
 					dprintf(eF,"%.*s \n", ebytes, errmes);
+					dprintf(eF,"RETURN CODE: %d\n", -1);
 					dprintf(eF, "============================================\n\n");
 					printf("%.*s", ebytes, errmes);
 				}
@@ -267,6 +271,7 @@ void pipeHandler(struct command *buf, int index, int oF, int eF){
 					dprintf(oF,"Shell pid: %d \n",getppid());
 					dprintf(oF,"Data: %.*s \n",dbytes, datemes);
 					dprintf(oF,"Output: \n\n%.*s \n", nbytes, message);
+					dprintf(oF,"RETURN CODE: %d\n", 0);
 					dprintf(oF, "============================================\n\n");
 					printf("%.*s", nbytes, message);
 				} else if(ebytes!=0 && nbytes==0){
@@ -275,6 +280,7 @@ void pipeHandler(struct command *buf, int index, int oF, int eF){
 					dprintf(eF,"Shell pid: %d \n",getppid());
 					dprintf(eF,"Data: %.*s \n",dbytes, datemes);
 					dprintf(eF,"%.*s \n", ebytes, errmes);
+					dprintf(eF,"RETURN CODE: %d\n", -1);
 					dprintf(eF, "============================================\n\n");
 					printf("%.*s", ebytes, errmes);
 				}
