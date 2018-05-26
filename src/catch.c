@@ -101,7 +101,7 @@ void esegui(struct command *buf, int outputFile, int errorFile) {
 
 		} else if(ebytes!=0 && nbytes==0){
 
-			stampa_file(errorFile, str_cmd, dbytes, nbytes, datemes, message, -1);
+			stampa_file(errorFile, str_cmd, dbytes, ebytes, datemes, errmes, -1);
 		}
 		
 		//qui si può mettere una wait...
@@ -234,7 +234,7 @@ void pipeHandler(struct command *buf, int index, int outputFile, int errorFile){
 					
 				} else if(ebytes!=0 && nbytes==0){
 
-					stampa_file(errorFile, str_cmd, dbytes, nbytes, datemes, message, -1);
+					stampa_file(errorFile, str_cmd, dbytes, ebytes, datemes, errmes, -1);
 				}
 			} else {				
 				close(fd2[0]);
@@ -249,7 +249,7 @@ void pipeHandler(struct command *buf, int index, int outputFile, int errorFile){
 
 				} else if(ebytes!=0 && nbytes==0){
 
-					stampa_file(errorFile, str_cmd, dbytes, nbytes, datemes, message, -1);
+					stampa_file(errorFile, str_cmd, dbytes, ebytes, datemes, errmes, -1);
 
 				}
 			}
