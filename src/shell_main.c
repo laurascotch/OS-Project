@@ -4,8 +4,8 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <errno.h>
-#include "comandi.h"
-#include "catch.h"
+#include "utilities.h"
+#include "execute.h"
 
 /*
  * Metodo che invoca le funzione appropriate per eseguire i comandi 

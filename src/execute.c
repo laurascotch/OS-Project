@@ -4,8 +4,8 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <string.h>
-#include "comandi.h"
-#include "catch.h"
+#include "utilities.h"
+#include "execute.h"
 
 #define READ 0
 #define WRITE 1
