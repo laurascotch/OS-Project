@@ -10,8 +10,6 @@
 #define READ 0
 #define WRITE 1
 
-
-
 void stampa_cmd(char *str_cmd, struct command *buf, int index){
 	char *stringa[1024];
 	int num_cmd=index+1;
@@ -39,7 +37,7 @@ void stampa_cmd(char *str_cmd, struct command *buf, int index){
 }
 
 
-void esegui(struct command *buf, int oF, int eF) {
+void esegui(struct command *buf, int outputFile, int errorFile) {
 
 	char message[1024];
 	char errmes[1024];
@@ -99,11 +97,11 @@ void esegui(struct command *buf, int oF, int eF) {
 		int ebytes = read(ep[0], errmes, sizeof(errmes));
 		if(nbytes != 0 && ebytes==0){
 
-			stampa_file(oF, str_cmd, dbytes, nbytes, datemes, message, 0);
+			stampa_file(outputFile, str_cmd, dbytes, nbytes, datemes, message, 0);
 
 		} else if(ebytes!=0 && nbytes==0){
 
-			stampa_file(eF, str_cmd, dbytes, nbytes, datemes, message, -1);
+			stampa_file(errorFile, str_cmd, dbytes, nbytes, datemes, message, -1);
 		}
 		
 		//qui si può mettere una wait...
@@ -111,7 +109,7 @@ void esegui(struct command *buf, int oF, int eF) {
 	free(str_cmd);
 }
 
-void pipeHandler(struct command *buf, int index, int oF, int eF){
+void pipeHandler(struct command *buf, int index, int outputFile, int errorFile){
 	
 	// File descriptors
 	int fd[2]; // pos. 0 output, pos. 1 input
@@ -232,11 +230,11 @@ void pipeHandler(struct command *buf, int index, int oF, int eF){
 				int dbytes = read(tm[0], datemes,sizeof(datemes));
 				if(nbytes != 0 && ebytes==0){
 
-					stampa_file(oF, str_cmd, dbytes, nbytes, datemes, message, 0);
+					stampa_file(outputFile, str_cmd, dbytes, nbytes, datemes, message, 0);
 					
 				} else if(ebytes!=0 && nbytes==0){
 
-					stampa_file(eF, str_cmd, dbytes, nbytes, datemes, message, -1);
+					stampa_file(errorFile, str_cmd, dbytes, nbytes, datemes, message, -1);
 				}
 			} else {				
 				close(fd2[0]);
@@ -247,11 +245,11 @@ void pipeHandler(struct command *buf, int index, int oF, int eF){
 				int dbytes = read(tm[0], datemes,sizeof(datemes));
 				if(nbytes != 0 && ebytes==0){
 
-					stampa_file(oF, str_cmd, dbytes, nbytes, datemes, message, 0);
+					stampa_file(outputFile, str_cmd, dbytes, nbytes, datemes, message, 0);
 
 				} else if(ebytes!=0 && nbytes==0){
 
-					stampa_file(eF, str_cmd, dbytes, nbytes, datemes, message, -1);
+					stampa_file(errorFile, str_cmd, dbytes, nbytes, datemes, message, -1);
 
 				}
 			}
