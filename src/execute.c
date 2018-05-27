@@ -10,6 +10,8 @@
 #define READ 0
 #define WRITE 1
 
+int counter=0; //Conta i comandi immessi in questa sessione
+
 /*
  * Funzione per che legge da buf il comando immesso dall'utente per 
  * stamparlo nei file di log.
@@ -58,6 +60,8 @@ void stampa_cmd(char *str_cmd, struct command *buf, int index){
  * buf	:	L'array con i comandi (in questo caso con uno solo)
  * outputFile	:	il file descriptor per il file di log
  * errorFile	:	il file descriptor per il file di log degli errori
+ * code			:	flag per decidere se stampare il codice di ritorno
+ * maxlen		: 	massima lunghezza dell'output
  */
 void esegui(struct command *buf, int outputFile, int errorFile, int code, int maxlen) {
 
@@ -74,6 +78,8 @@ void esegui(struct command *buf, int outputFile, int errorFile, int code, int ma
 	
 	char *str_cmd = malloc(1024*sizeof(char));
 	stampa_cmd(str_cmd,buf,0);
+
+	counter++;
 
 // INIZIALIZZAZIONE DELLE PIPES
 	if (pipe(ep) == -1) {
@@ -124,11 +130,11 @@ void esegui(struct command *buf, int outputFile, int errorFile, int code, int ma
 		int ebytes = read(ep[0], errmes, sizeof(errmes));
 		if(nbytes != 0 && ebytes==0){
 
-			stampa_file(outputFile, str_cmd, dbytes, nbytes, datemes, message, 0, code, maxlen);
+			stampa_file(outputFile, str_cmd, dbytes, nbytes, datemes, message, 0, code, maxlen, 0);
 
 		} else if(ebytes!=0 && nbytes==0){
 
-			stampa_file(errorFile, str_cmd, dbytes, ebytes, datemes, errmes, -1, code, maxlen);
+			stampa_file(errorFile, str_cmd, dbytes, ebytes, datemes, errmes, -1, code, maxlen, 0);
 		}
 	}
 	free(str_cmd);
@@ -145,6 +151,8 @@ void esegui(struct command *buf, int outputFile, int errorFile, int code, int ma
  * index		:	l'indice dell'ultimo comando nell'array
  * outputFile	:	il file descriptor per il file di log
  * errorFile	:	il file descriptor per il file di log degli errori
+ * code			:	flag per decidere se stampare il codice di ritorno
+ * maxlen		: 	massima lunghezza dell'output
  */
 void pipeHandler(struct command *buf, int index, int outputFile, int errorFile, int code, int maxlen){
 	
@@ -161,6 +169,8 @@ void pipeHandler(struct command *buf, int index, int outputFile, int errorFile, 
 	char *message[1024]; //stringa output
 	char *str_cmd = malloc(1024*sizeof(char)); //stringa del comando
 	stampa_cmd(str_cmd,buf,index);
+	
+	counter++;
 	
 //////////////////////////////////////////
 //	GESTIONE DATA E ORA PER OUTPUT
@@ -272,11 +282,11 @@ void pipeHandler(struct command *buf, int index, int outputFile, int errorFile, 
 				int dbytes = read(tm[0], datemes,sizeof(datemes));
 				if(nbytes != 0 && ebytes==0){
 
-					stampa_file(outputFile, str_cmd, dbytes, nbytes, datemes, message, 0, code, maxlen);
+					stampa_file(outputFile, str_cmd, dbytes, nbytes, datemes, message, 0, code, maxlen, i+1);
 					
 				} else if(ebytes!=0 && nbytes==0){
 
-					stampa_file(errorFile, str_cmd, dbytes, ebytes, datemes, errmes, -1, code, maxlen);
+					stampa_file(errorFile, str_cmd, dbytes, ebytes, datemes, errmes, -1, code, maxlen, i+1);
 				}
 			} else {				
 				close(fd2[0]);
@@ -287,11 +297,11 @@ void pipeHandler(struct command *buf, int index, int outputFile, int errorFile, 
 				int dbytes = read(tm[0], datemes,sizeof(datemes));
 				if(nbytes != 0 && ebytes==0){
 
-					stampa_file(outputFile, str_cmd, dbytes, nbytes, datemes, message, 0, code, maxlen);
+					stampa_file(outputFile, str_cmd, dbytes, nbytes, datemes, message, 0, code, maxlen, i+1);
 
 				} else if(ebytes!=0 && nbytes==0){
 
-					stampa_file(errorFile, str_cmd, dbytes, ebytes, datemes, errmes, -1, code, maxlen);
+					stampa_file(errorFile, str_cmd, dbytes, ebytes, datemes, errmes, -1, code, maxlen, i+1);
 
 				}
 			}
@@ -320,12 +330,20 @@ void pipeHandler(struct command *buf, int index, int outputFile, int errorFile, 
  * datemes		:	la stringa della data
  * message		:	la stringa di output
  * resultcode	:	codice di ritorno
+ * code			:	flag per decidere se stampare il codice di ritorno
+ * maxlen		: 	massima lunghezza dell'output
+ * i			:	contatore per i comandi in piping
  */
-void stampa_file(int outputFile, char *str_cmd, int dbytes, int nbytes, char datemes[1024], char message[1024], int resultcode, int code, int maxlen){
+void stampa_file(int outputFile, char *str_cmd, int dbytes, int nbytes, char datemes[1024], char message[1024], int resultcode, int code, int maxlen, int i){
 	
 	dprintf(outputFile, "============================================\n\n");
 	dprintf(outputFile, "COMMAND: %s \n",str_cmd);
 	dprintf(outputFile,"SHELL PID: %d \n",getppid());
+	if(i==0){
+		dprintf(outputFile, "Cmd NUMBER: %d \n",counter);
+	} else {
+		dprintf(outputFile, "Cmd NUMBER: %d . %d \n",counter,i);
+	}
 	dprintf(outputFile,"DATE: %.*s \n",dbytes, datemes);
 	int printBytes = min(maxlen, nbytes);
 	dprintf(outputFile, "OUTPUT: \n\n");
