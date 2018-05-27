@@ -207,7 +207,10 @@ void pipeHandler(struct command *buf, int index, int outputFile, int errorFile, 
 		// viene riutilizzata ogni due iterazioni, permettendoci di 
 		// connettere gli input e gli output di due comandi diversi
 		
-		pipe(ep);
+		if(pipe(ep) == -1){
+				perror("pipe");
+				exit(1);
+			}
 		
 		if (i % 2 != 0){ // iterazioni dispari
 			if(pipe(fd) == -1){
@@ -260,7 +263,7 @@ void pipeHandler(struct command *buf, int index, int outputFile, int errorFile, 
 			}
 			
 			if(execvp(buf[i].args[0], buf[i].args) == -1){
-				perror("Error execvp");
+				perror("Error");
 			}
 			exit(1);
 			
